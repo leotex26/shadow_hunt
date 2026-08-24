@@ -1,0 +1,34 @@
+.game-footer {
+  height: 90px;
+
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 1rem;
+
+  align-items: center;
+
+  padding: 1rem 2rem;
+
+  border-top: 1px solid #ddd;
+}
+
+.turn,
+.game-status {
+  padding: 1rem;
+
+  text-align: center;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.end-turn {
+  padding: 1rem;
+
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-size: 1rem;
+}

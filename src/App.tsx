@@ -1,13 +1,22 @@
 import "./App.css";
 
+import Header from "./components/Header/Header";
+import GameMap from "./components/GameMap/GameMap";
+import Sidebar from "./components/Sidebar/Sidebar";
+import GameFooter from "./components/GameFooter/GameFooter";
+
 function App() {
   return (
-    <main>
-      <h1>Shadow Hunt</h1>
-      <h2>Carte : Bellevue</h2>
+    <div className="game">
+      <Header />
 
-      <p>Le prototype de la carte sera affiché ici.</p>
-    </main>
+      <main className="game-content">
+        <GameMap />
+        <Sidebar />
+      </main>
+
+      <GameFooter />
+    </div>
   );
 }
 

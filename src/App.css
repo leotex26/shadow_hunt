@@ -1,11 +1,16 @@
-#root {
-  min-height: 100vh;
+.game {
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
 }
 
-main {
-  padding: 2rem;
-}
+.game-content {
+  flex: 1;
 
-h1 {
-  margin-bottom: 0.25rem;
+  min-height: 0;
+
+  display: flex;
+
+  overflow: hidden;
 }
