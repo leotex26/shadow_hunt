@@ -2,6 +2,7 @@ import "./GameMap.css";
 
 import { bellevue } from "../../game/maps/bellevue";
 import type { Station, Connection } from "../../game/types/map";
+import { players } from "../../game/players";
 
 function GameMap() {
   const getStation = (id: number): Station | undefined => {
@@ -26,6 +27,31 @@ function GameMap() {
       <div className="map-board">
         {/* Connexions */}
         <svg className="connections">
+          {/* Joueurs */}
+{players.map((player) => {
+  const station = getStation(player.position);
+
+  if (!station) {
+    return null;
+  }
+
+  if (player.role === "mister-x") {
+    return null;
+  }
+
+  return (
+    <div
+      key={player.id}
+      className="player-token"
+      style={{
+        left: `${station.x}%`,
+        top: `${station.y}%`,
+      }}
+    >
+      👮
+    </div>
+  );
+})}
           {bellevue.connections.map((connection, index) => {
             const from = getStation(connection.from);
             const to = getStation(connection.to);
