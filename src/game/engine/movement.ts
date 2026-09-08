@@ -44,3 +44,23 @@ export function getPossibleMoves(
 
   return possibleMoves;
 }
+
+
+export function movePlayer(
+  player: Player,
+  stationId: number,
+  transport: TransportType
+): Player {
+  return {
+    ...player,
+
+    position: stationId,
+
+    tickets: {
+      ...player.tickets,
+
+      [transport]:
+        player.tickets[transport] - 1,
+    },
+  };
+}
