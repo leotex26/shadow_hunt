@@ -2,12 +2,17 @@ import "./GameMap.css";
 
 import { bellevue } from "../../game/maps/bellevue";
 import { players } from "../../game/players";
-import { getPossibleMoves } from "../../game/engine/movement";
+import { useState } from "react";
 
 import type {
   Station,
   Connection,
 } from "../../game/types/map";
+
+import {
+  getPossibleMoves,
+  movePlayer,
+} from "../../game/engine/movement";
 
 function GameMap() {
   const getStation = (id: number): Station | undefined => {
@@ -18,13 +23,44 @@ function GameMap() {
 
   // Pour le moment, on sélectionne automatiquement
   // le premier joueur : Détective 1.
-  const activePlayer = players[0];
+const [gamePlayers, setGamePlayers] =
+  useState(players);
+
+const activePlayer = gamePlayers[0];
 
   // On récupère tous les déplacements possibles.
   const possibleMoves = getPossibleMoves(
     activePlayer,
     bellevue
   );
+
+  const handleMove = (stationId: number) => {
+  const movesToStation = possibleMoves.filter(
+    (move) => move.stationId === stationId
+  );
+
+  if (movesToStation.length === 0) {
+    return;
+  }
+
+  // Pour le moment, s'il existe plusieurs moyens
+  // de transport vers la même station, on prend le premier.
+  const selectedMove = movesToStation[0];
+
+  setGamePlayers((currentPlayers) =>
+    currentPlayers.map((player) => {
+      if (player.id !== activePlayer.id) {
+        return player;
+      }
+
+      return movePlayer(
+        player,
+        selectedMove.stationId,
+        selectedMove.transport
+      );
+    })
+  );
+};
 
   const getTransportSymbol = (
     transport: Connection["transport"]
@@ -110,7 +146,7 @@ function GameMap() {
             JOUEURS
         ====================== */}
 
-        {players.map((player) => {
+        {gamePlayers.map((player) => {
           const station = getStation(
             player.position
           );
@@ -151,6 +187,12 @@ function GameMap() {
 
           return (
             <button
+            onClick={() => {
+  if (isPossibleDestination) {
+    handleMove(station.id);
+  }
+}}
+disabled={!isPossibleDestination}
               key={station.id}
               className={`
                 station
