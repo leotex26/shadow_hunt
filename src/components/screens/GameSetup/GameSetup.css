@@ -1,0 +1,160 @@
+.game-setup {
+  width: 100%;
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.game-setup__header {
+  width: 100%;
+  max-width: 40rem;
+
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+
+  margin-bottom: 2.5rem;
+}
+
+.game-setup__header h1 {
+  margin: 0;
+
+  font-size: 1.9rem;
+}
+
+.game-setup__back {
+  padding: 0;
+
+  border: none;
+  background: none;
+
+  color: #777;
+  font-size: 0.9rem;
+
+  cursor: pointer;
+}
+
+.game-setup__back:hover {
+  color: #333;
+}
+
+.game-setup__section {
+  width: 100%;
+  max-width: 40rem;
+
+  margin-bottom: 2.25rem;
+}
+
+.game-setup__section h2 {
+  margin: 0 0 0.85rem;
+
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.game-setup__maps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.game-setup__map {
+  text-align: left;
+
+  padding: 0.9rem 1.1rem;
+
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  cursor: pointer;
+}
+
+.game-setup__map--selected {
+  border-color: #333;
+}
+
+.game-setup__map-name {
+  font-weight: 600;
+}
+
+.game-setup__map-desc {
+  color: #777;
+  font-size: 0.85rem;
+}
+
+.game-setup__roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 32rem) {
+  .game-setup__roles {
+    grid-template-columns: 1fr;
+  }
+}
+
+.game-setup__role {
+  text-align: left;
+
+  padding: 1.1rem;
+
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  cursor: pointer;
+}
+
+.game-setup__role--selected {
+  border-color: #333;
+  border-width: 2px;
+}
+
+.game-setup__role-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.game-setup__role-pitch {
+  color: #777;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.game-setup__confirm {
+  padding: 0.85rem 2.5rem;
+
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #fff;
+
+  font-size: 1rem;
+
+  cursor: pointer;
+}
+
+.game-setup__confirm:hover:not(:disabled) {
+  background: #333;
+  color: #fff;
+}
+
+.game-setup__confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
