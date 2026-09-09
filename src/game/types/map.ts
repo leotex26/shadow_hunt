@@ -1,8 +1,10 @@
-import type { TransportType } from "./transport";
+export type TransportType = "taxi" | "bus" | "metro";
 
 export interface Station {
   id: number;
   name: string;
+
+  // Position sur la carte en pourcentage
   x: number;
   y: number;
 }
@@ -10,12 +12,16 @@ export interface Station {
 export interface Connection {
   from: number;
   to: number;
-  transport: TransportType;
+
+  // Plusieurs transports peuvent être disponibles
+  // pour le même trajet.
+  transports: TransportType[];
 }
 
 export interface GameMap {
   id: string;
   name: string;
+
   stations: Station[];
   connections: Connection[];
 }

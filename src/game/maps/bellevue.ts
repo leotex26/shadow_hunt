@@ -8,90 +8,188 @@ export const bellevue: GameMap = {
     {
       id: 1,
       name: "Forêt",
-      x: 50,
-      y: 8
+      x: 15,
+      y: 20,
     },
     {
       id: 2,
       name: "École",
-      x: 20,
-      y: 25
+      x: 35,
+      y: 25,
     },
     {
       id: 3,
       name: "Mairie",
-      x: 50,
-      y: 25
+      x: 55,
+      y: 20,
     },
     {
       id: 4,
       name: "Gare",
-      x: 80,
-      y: 25
+      x: 75,
+      y: 25,
     },
     {
       id: 5,
       name: "Parc",
       x: 20,
-      y: 50
+      y: 45,
     },
     {
       id: 6,
-      name: "Place centrale",
+      name: "Centre-ville",
       x: 50,
-      y: 50
+      y: 45,
     },
     {
       id: 7,
       name: "Marché",
-      x: 80,
-      y: 50
+      x: 75,
+      y: 45,
     },
     {
       id: 8,
-      name: "Port",
-      x: 20,
-      y: 75
+      name: "Lac",
+      x: 25,
+      y: 70,
     },
     {
       id: 9,
-      name: "Café",
+      name: "Hôpital",
       x: 50,
-      y: 75
+      y: 70,
     },
     {
       id: 10,
-      name: "Stade",
+      name: "Port",
       x: 80,
-      y: 75
+      y: 70,
     },
     {
       id: 11,
-      name: "Ferme",
-      x: 50,
-      y: 92
-    }
+      name: "Université",
+      x: 55,
+      y: 90,
+    },
   ],
 
   connections: [
-    // Taxi
-    { from: 1, to: 3, transport: "taxi" },
-    { from: 2, to: 3, transport: "taxi" },
-    { from: 3, to: 4, transport: "taxi" },
-    { from: 5, to: 6, transport: "taxi" },
-    { from: 6, to: 7, transport: "taxi" },
-    { from: 8, to: 9, transport: "taxi" },
-    { from: 9, to: 10, transport: "taxi" },
-    { from: 10, to: 11, transport: "taxi" },
+    // =====================
+    // TAXI UNIQUEMENT
+    // =====================
 
-    // Bus
-    { from: 2, to: 5, transport: "bus" },
-    { from: 4, to: 7, transport: "bus" },
-    { from: 6, to: 9, transport: "bus" },
+    {
+      from: 1,
+      to: 2,
+      transports: ["taxi"],
+    },
 
-    // Métro
-    { from: 3, to: 6, transport: "metro" },
-    { from: 5, to: 8, transport: "metro" },
-    { from: 9, to: 11, transport: "metro" }
-  ]
+    {
+      from: 1,
+      to: 3,
+      transports: ["taxi"],
+    },
+
+    {
+      from: 2,
+      to: 5,
+      transports: ["taxi"],
+    },
+
+    {
+      from: 3,
+      to: 4,
+      transports: ["taxi"],
+    },
+
+    {
+      from: 5,
+      to: 8,
+      transports: ["taxi"],
+    },
+
+    {
+      from: 9,
+      to: 11,
+      transports: ["taxi"],
+    },
+
+    // =====================
+    // TAXI + BUS
+    // =====================
+
+    {
+      from: 2,
+      to: 3,
+      transports: ["taxi", "bus"],
+    },
+
+    {
+      from: 3,
+      to: 6,
+      transports: ["taxi", "bus"],
+    },
+
+    {
+      from: 5,
+      to: 6,
+      transports: ["taxi", "bus"],
+    },
+
+    {
+      from: 6,
+      to: 7,
+      transports: ["taxi", "bus"],
+    },
+
+    {
+      from: 8,
+      to: 9,
+      transports: ["taxi", "bus"],
+    },
+
+    {
+      from: 10,
+      to: 11,
+      transports: ["taxi", "bus"],
+    },
+
+    // =====================
+    // TAXI + MÉTRO
+    // =====================
+
+    {
+      from: 2,
+      to: 6,
+      transports: ["taxi", "metro"],
+    },
+
+    {
+      from: 4,
+      to: 7,
+      transports: ["taxi", "metro"],
+    },
+
+    {
+      from: 6,
+      to: 9,
+      transports: ["taxi", "metro"],
+    },
+
+    {
+      from: 9,
+      to: 10,
+      transports: ["taxi", "metro"],
+    },
+
+    // =====================
+    // TAXI + BUS + MÉTRO
+    // =====================
+
+    {
+      from: 6,
+      to: 9,
+      transports: ["taxi", "bus", "metro"],
+    },
+  ],
 };

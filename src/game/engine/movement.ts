@@ -1,10 +1,17 @@
-import type { GameMap, Connection } from "../types/map";
+import type {
+  GameMap,
+  Connection,
+  TransportType,
+} from "../types/map";
+
 import type { Player } from "../types/player";
-import type { TransportType } from "../types/transport";
 
 export interface PossibleMove {
   stationId: number;
-  transport: TransportType;
+
+  // Tous les transports possibles
+  // pour atteindre cette station.
+  transports: TransportType[];
 }
 
 export function getPossibleMoves(
@@ -13,8 +20,8 @@ export function getPossibleMoves(
 ): PossibleMove[] {
   const possibleMoves: PossibleMove[] = [];
 
-  // On cherche toutes les connexions reliées
-  // à la position actuelle du joueur.
+  // On cherche toutes les connexions
+  // reliées à la position actuelle.
   const connections = map.connections.filter(
     (connection: Connection) =>
       connection.from === player.position ||
@@ -22,35 +29,46 @@ export function getPossibleMoves(
   );
 
   for (const connection of connections) {
-    // Vérifie que le joueur possède encore un ticket
-    // pour ce type de transport.
-    if (player.tickets[connection.transport] <= 0) {
-      continue;
-    }
-
-    // Si le joueur est du côté "from",
-    // la destination est "to".
-    // Sinon, la destination est "from".
+    // Destination selon le sens
+    // dans lequel le joueur arrive.
     const destination =
       connection.from === player.position
         ? connection.to
         : connection.from;
 
+    // On garde uniquement les transports
+    // pour lesquels le joueur possède un ticket.
+    const availableTransports =
+      connection.transports.filter(
+        (transport) => player.tickets[transport] > 0
+      );
+
+    // Aucun transport utilisable.
+    if (availableTransports.length === 0) {
+      continue;
+    }
+
     possibleMoves.push({
       stationId: destination,
-      transport: connection.transport,
+      transports: availableTransports,
     });
   }
 
   return possibleMoves;
 }
 
-
 export function movePlayer(
   player: Player,
   stationId: number,
   transport: TransportType
 ): Player {
+  // Sécurité :
+  // impossible de déplacer le joueur
+  // s'il n'a plus de ticket.
+  if (player.tickets[transport] <= 0) {
+    return player;
+  }
+
   return {
     ...player,
 

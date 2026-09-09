@@ -56,14 +56,14 @@ const activePlayer = gamePlayers[0];
       return movePlayer(
         player,
         selectedMove.stationId,
-        selectedMove.transport
+        selectedMove.transports[0]
       );
     })
   );
 };
 
   const getTransportSymbol = (
-    transport: Connection["transport"]
+    transport: Connection["transports"][number]
   ) => {
     switch (transport) {
       case "taxi":
@@ -82,7 +82,7 @@ const activePlayer = gamePlayers[0];
   const getStationTransports = (stationId: number) => {
     return possibleMoves
       .filter((move) => move.stationId === stationId)
-      .map((move) => move.transport);
+      .flatMap((move) => move.transports);
   };
 
   return (
@@ -100,47 +100,37 @@ const activePlayer = gamePlayers[0];
         ====================== */}
 
         <svg className="connections">
-          {bellevue.connections.map(
-            (connection, index) => {
-              const from = getStation(connection.from);
-              const to = getStation(connection.to);
 
-              if (!from || !to) {
-                return null;
-              }
+  {bellevue.connections.map((connection, index) => {
+    const from = getStation(connection.from);
+    const to = getStation(connection.to);
 
-              const centerX =
-                (from.x + to.x) / 2;
+    if (!from || !to) {
+      return null;
+    }
 
-              const centerY =
-                (from.y + to.y) / 2;
+    return (
+      <g key={index}>
+        {connection.transports.map(
+          (transport, transportIndex) => (
+            <line
+              key={`${transport}-${transportIndex}`}
+              x1={`${from.x}%`}
+              y1={`${from.y}%`}
+              x2={`${to.x}%`}
+              y2={`${to.y}%`}
+              className={`
+                connection
+                connection-${transport}
+              `}
+            />
+          )
+        )}
+      </g>
+    );
+  })}
+</svg>
 
-              return (
-                <g key={index}>
-                  <line
-                    x1={`${from.x}%`}
-                    y1={`${from.y}%`}
-                    x2={`${to.x}%`}
-                    y2={`${to.y}%`}
-                    className={
-                      `connection connection-${connection.transport}`
-                    }
-                  />
-
-                  <text
-                    x={`${centerX}%`}
-                    y={`${centerY}%`}
-                    className="transport-symbol"
-                  >
-                    {getTransportSymbol(
-                      connection.transport
-                    )}
-                  </text>
-                </g>
-              );
-            }
-          )}
-        </svg>
 
         {/* =====================
             JOUEURS
@@ -218,15 +208,11 @@ disabled={!isPossibleDestination}
               {/* Affichage du transport disponible */}
               {isPossibleDestination && (
                 <span className="possible-transports">
-                  {transports.map(
-                    (transport, index) => (
-                      <span key={index}>
-                        {getTransportSymbol(
-                          transport
-                        )}
-                      </span>
-                    )
-                  )}
+                  {transports.map((transport, index) => (
+  <span key={index}>
+    {getTransportSymbol(transport)}
+  </span>
+))}
                 </span>
               )}
             </button>
