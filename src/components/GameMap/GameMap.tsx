@@ -4,67 +4,53 @@ import { bellevue } from "../../game/maps/bellevue";
 import { players } from "../../game/players";
 import { useState } from "react";
 
-import type {
-  Station,
-  Connection,
-} from "../../game/types/map";
+import type { Station, Connection } from "../../game/types/map";
 
-import {
-  getPossibleMoves,
-  movePlayer,
-} from "../../game/engine/movement";
+import { getPossibleMoves, movePlayer } from "../../game/engine/movement";
 
 function GameMap() {
   const getStation = (id: number): Station | undefined => {
-    return bellevue.stations.find(
-      (station) => station.id === id
-    );
+    return bellevue.stations.find((station) => station.id === id);
   };
 
   // Pour le moment, on sélectionne automatiquement
   // le premier joueur : Détective 1.
-const [gamePlayers, setGamePlayers] =
-  useState(players);
+  const [gamePlayers, setGamePlayers] = useState(players);
 
-const activePlayer = gamePlayers[0];
+  const activePlayer = gamePlayers[0];
 
   // On récupère tous les déplacements possibles.
-  const possibleMoves = getPossibleMoves(
-    activePlayer,
-    bellevue
-  );
+  const possibleMoves = getPossibleMoves(activePlayer, bellevue);
 
   const handleMove = (stationId: number) => {
-  const movesToStation = possibleMoves.filter(
-    (move) => move.stationId === stationId
-  );
+    const movesToStation = possibleMoves.filter(
+      (move) => move.stationId === stationId,
+    );
 
-  if (movesToStation.length === 0) {
-    return;
-  }
+    if (movesToStation.length === 0) {
+      return;
+    }
 
-  // Pour le moment, s'il existe plusieurs moyens
-  // de transport vers la même station, on prend le premier.
-  const selectedMove = movesToStation[0];
+    // Pour le moment, s'il existe plusieurs moyens
+    // de transport vers la même station, on prend le premier.
+    const selectedMove = movesToStation[0];
 
-  setGamePlayers((currentPlayers) =>
-    currentPlayers.map((player) => {
-      if (player.id !== activePlayer.id) {
-        return player;
-      }
+    setGamePlayers((currentPlayers) =>
+      currentPlayers.map((player) => {
+        if (player.id !== activePlayer.id) {
+          return player;
+        }
 
-      return movePlayer(
-        player,
-        selectedMove.stationId,
-        selectedMove.transports[0]
-      );
-    })
-  );
-};
+        return movePlayer(
+          player,
+          selectedMove.stationId,
+          selectedMove.transports[0],
+        );
+      }),
+    );
+  };
 
-  const getTransportSymbol = (
-    transport: Connection["transports"][number]
-  ) => {
+  const getTransportSymbol = (transport: Connection["transports"][number]) => {
     switch (transport) {
       case "taxi":
         return "🚕";
@@ -94,52 +80,45 @@ const activePlayer = gamePlayers[0];
       </p>
 
       <div className="map-board">
-
         {/* =====================
             CONNEXIONS
         ====================== */}
 
         <svg className="connections">
+          {bellevue.connections.map((connection, index) => {
+            const from = getStation(connection.from);
+            const to = getStation(connection.to);
 
-  {bellevue.connections.map((connection, index) => {
-    const from = getStation(connection.from);
-    const to = getStation(connection.to);
+            if (!from || !to) {
+              return null;
+            }
 
-    if (!from || !to) {
-      return null;
-    }
-
-    return (
-      <g key={index}>
-        {connection.transports.map(
-          (transport, transportIndex) => (
-            <line
-              key={`${transport}-${transportIndex}`}
-              x1={`${from.x}%`}
-              y1={`${from.y}%`}
-              x2={`${to.x}%`}
-              y2={`${to.y}%`}
-              className={`
+            return (
+              <g key={index}>
+                {connection.transports.map((transport, transportIndex) => (
+                  <line
+                    key={`${transport}-${transportIndex}`}
+                    x1={`${from.x}%`}
+                    y1={`${from.y}%`}
+                    x2={`${to.x}%`}
+                    y2={`${to.y}%`}
+                    className={`
                 connection
                 connection-${transport}
               `}
-            />
-          )
-        )}
-      </g>
-    );
-  })}
-</svg>
-
+                  />
+                ))}
+              </g>
+            );
+          })}
+        </svg>
 
         {/* =====================
             JOUEURS
         ====================== */}
 
         {gamePlayers.map((player) => {
-          const station = getStation(
-            player.position
-          );
+          const station = getStation(player.position);
 
           if (!station) {
             return null;
@@ -169,56 +148,43 @@ const activePlayer = gamePlayers[0];
         ====================== */}
 
         {bellevue.stations.map((station) => {
-          const transports =
-            getStationTransports(station.id);
+          const transports = getStationTransports(station.id);
 
-          const isPossibleDestination =
-            transports.length > 0;
+          const isPossibleDestination = transports.length > 0;
 
           return (
             <button
-            onClick={() => {
-  if (isPossibleDestination) {
-    handleMove(station.id);
-  }
-}}
-disabled={!isPossibleDestination}
+              onClick={() => {
+                if (isPossibleDestination) {
+                  handleMove(station.id);
+                }
+              }}
+              disabled={!isPossibleDestination}
               key={station.id}
               className={`
                 station
-                ${
-                  isPossibleDestination
-                    ? "station-possible"
-                    : ""
-                }
+                ${isPossibleDestination ? "station-possible" : ""}
               `}
               style={{
                 left: `${station.x}%`,
                 top: `${station.y}%`,
               }}
             >
-              <span className="station-number">
-                {station.id}
-              </span>
+              <span className="station-number">{station.id}</span>
 
-              <span className="station-name">
-                {station.name}
-              </span>
+              <span className="station-name">{station.name}</span>
 
               {/* Affichage du transport disponible */}
               {isPossibleDestination && (
                 <span className="possible-transports">
                   {transports.map((transport, index) => (
-  <span key={index}>
-    {getTransportSymbol(transport)}
-  </span>
-))}
+                    <span key={index}>{getTransportSymbol(transport)}</span>
+                  ))}
                 </span>
               )}
             </button>
           );
         })}
-
       </div>
     </section>
   );
