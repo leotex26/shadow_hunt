@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import type { PlayerRole } from "../../game/types/player";
-import type { MapId, GameConfig } from "../../game/types/flow";
+import type { PlayerRole } from "../../../game/types/player";
+import type { MapId, GameConfig } from "../../../game/types/flow";
 
 import "./GameSetup.css";
 

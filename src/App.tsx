@@ -1,8 +1,8 @@
 import { useState } from "react";
 import "./App.css";
 
-import StartScreen from "src/components/screens/StartScreen";
-import GameSetup from "src/components/screens/GameSetup";
+import StartScreen from "./components/screens/StartScreen/StartScreen";
+import GameSetup from "./components/screens/GameSetup/GameSetup";
 
 import Header from "./components/Header/Header";
 import GameMap from "./components/GameMap/GameMap";       
