@@ -21,6 +21,12 @@ function App() {
   const [config, setConfig] = useState<GameConfig | null>(null);
   const [gamePlayers, setGamePlayers] = useState<Player[]>(initialPlayers);
 
+  // Index du joueur dont c'est le tour dans `gamePlayers`.
+  // Un "Tour" (au sens du compteur affiché) correspond à un tour complet
+  // de la table : il s'incrémente quand on revient au premier joueur.
+  const [activePlayerIndex, setActivePlayerIndex] = useState(0);
+  const [turnNumber, setTurnNumber] = useState(1);
+
   if (screen === "start") {
     return <StartScreen onStart={() => setScreen("setup")} />;
   }
@@ -42,10 +48,11 @@ function App() {
   // qu'après GameSetup.onConfirm.
   const map = maps[config!.mapId];
 
-  // Pour l'instant, le joueur actif est toujours le premier détective ;
-  // la rotation de tour (et l'IA de Mister X / des détectives) viendra
-  // avec la prochaine étape.
-  const activePlayer = gamePlayers[0];
+  // Pour l'instant, tous les joueurs (détectives et Mister X) sont
+  // contrôlés depuis cette même interface, à tour de rôle ; l'IA qui
+  // contrôlera automatiquement le camp que le joueur humain n'a pas
+  // choisi viendra dans une prochaine étape.
+  const activePlayer = gamePlayers[activePlayerIndex];
 
   // Déplacements possibles pour le joueur actif, déjà filtrés
   // par les tickets qu'il possède encore (voir game/engine/movement.ts).
@@ -73,6 +80,17 @@ function App() {
     );
   };
 
+  const handleEndTurn = () => {
+    const nextIndex = (activePlayerIndex + 1) % gamePlayers.length;
+
+    // On a fait le tour de tous les joueurs : le compteur de tour avance.
+    if (nextIndex === 0) {
+      setTurnNumber((currentTurn) => currentTurn + 1);
+    }
+
+    setActivePlayerIndex(nextIndex);
+  };
+
   return (
     <div className="game">
       <Header mapName={map.name} />
@@ -89,7 +107,11 @@ function App() {
         <Sidebar players={gamePlayers} activePlayerId={activePlayer.id} />
       </main>
 
-      <GameFooter />
+      <GameFooter
+        turnNumber={turnNumber}
+        activePlayerName={activePlayer.name}
+        onEndTurn={handleEndTurn}
+      />
     </div>
   );
 }

@@ -1,18 +1,24 @@
 import "./GameFooter.css";
 
-function GameFooter() {
+interface GameFooterProps {
+  turnNumber: number;
+  activePlayerName: string;
+  onEndTurn: () => void;
+}
+
+function GameFooter({ turnNumber, activePlayerName, onEndTurn }: GameFooterProps) {
   return (
     <footer className="game-footer">
 
       <div className="turn">
-        Tour 1 / --
+        Tour {turnNumber}
       </div>
 
       <div className="game-status">
-        À vous de jouer
+        À {activePlayerName} de jouer
       </div>
 
-      <button className="end-turn">
+      <button className="end-turn" onClick={onEndTurn}>
         Finir le tour
       </button>
 
