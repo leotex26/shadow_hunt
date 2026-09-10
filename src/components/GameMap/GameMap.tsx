@@ -1,53 +1,20 @@
 import "./GameMap.css";
 
-import { bellevue } from "../../game/maps/bellevue";
-import { players } from "../../game/players";
-import { useState } from "react";
+import type { GameMap as GameMapData, Station, Connection } from "../../game/types/map";
+import type { Player } from "../../game/types/player";
+import type { PossibleMove } from "../../game/engine/movement";
 
-import type { Station, Connection } from "../../game/types/map";
+interface GameMapProps {
+  map: GameMapData;
+  players: Player[];
+  activePlayer: Player;
+  possibleMoves: PossibleMove[];
+  onMove: (stationId: number) => void;
+}
 
-import { getPossibleMoves, movePlayer } from "../../game/engine/movement";
-
-function GameMap() {
+function GameMap({ map, players, activePlayer, possibleMoves, onMove }: GameMapProps) {
   const getStation = (id: number): Station | undefined => {
-    return bellevue.stations.find((station) => station.id === id);
-  };
-
-  // Pour le moment, on sélectionne automatiquement
-  // le premier joueur : Détective 1.
-  const [gamePlayers, setGamePlayers] = useState(players);
-
-  const activePlayer = gamePlayers[0];
-
-  // On récupère tous les déplacements possibles.
-  const possibleMoves = getPossibleMoves(activePlayer, bellevue);
-
-  const handleMove = (stationId: number) => {
-    const movesToStation = possibleMoves.filter(
-      (move) => move.stationId === stationId,
-    );
-
-    if (movesToStation.length === 0) {
-      return;
-    }
-
-    // Pour le moment, s'il existe plusieurs moyens
-    // de transport vers la même station, on prend le premier.
-    const selectedMove = movesToStation[0];
-
-    setGamePlayers((currentPlayers) =>
-      currentPlayers.map((player) => {
-        if (player.id !== activePlayer.id) {
-          return player;
-        }
-
-        return movePlayer(
-          player,
-          selectedMove.stationId,
-          selectedMove.transports[0],
-        );
-      }),
-    );
+    return map.stations.find((station) => station.id === id);
   };
 
   const getTransportSymbol = (transport: Connection["transports"][number]) => {
@@ -64,7 +31,8 @@ function GameMap() {
   };
 
   // Retourne tous les moyens de transport permettant
-  // d'atteindre une station.
+  // d'atteindre une station, déjà filtrés par ticket disponible
+  // (voir game/engine/movement.ts : getPossibleMoves).
   const getStationTransports = (stationId: number) => {
     return possibleMoves
       .filter((move) => move.stationId === stationId)
@@ -73,7 +41,7 @@ function GameMap() {
 
   return (
     <section className="game-map">
-      <h2>{bellevue.name}</h2>
+      <h2>{map.name}</h2>
 
       <p className="active-player">
         Tour de : <strong>{activePlayer.name}</strong>
@@ -85,7 +53,7 @@ function GameMap() {
         ====================== */}
 
         <svg className="connections">
-          {bellevue.connections.map((connection, index) => {
+          {map.connections.map((connection, index) => {
             const from = getStation(connection.from);
             const to = getStation(connection.to);
 
@@ -117,7 +85,7 @@ function GameMap() {
             JOUEURS
         ====================== */}
 
-        {gamePlayers.map((player) => {
+        {players.map((player) => {
           const station = getStation(player.position);
 
           if (!station) {
@@ -147,7 +115,7 @@ function GameMap() {
             STATIONS
         ====================== */}
 
-        {bellevue.stations.map((station) => {
+        {map.stations.map((station) => {
           const transports = getStationTransports(station.id);
 
           const isPossibleDestination = transports.length > 0;
@@ -156,7 +124,7 @@ function GameMap() {
             <button
               onClick={() => {
                 if (isPossibleDestination) {
-                  handleMove(station.id);
+                  onMove(station.id);
                 }
               }}
               disabled={!isPossibleDestination}

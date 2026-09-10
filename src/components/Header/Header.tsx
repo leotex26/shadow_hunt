@@ -1,12 +1,16 @@
 import "./Header.css";
 
-function Header() {
+interface HeaderProps {
+  mapName: string;
+}
+
+function Header({ mapName }: HeaderProps) {
   return (
     <header className="header">
       <h1>SHADOW HUNT</h1>
 
       <div className="map-name">
-        Carte : Bellevue
+        Carte : {mapName}
       </div>
 
       <div className="header-actions">

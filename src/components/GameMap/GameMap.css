@@ -1,4 +1,130 @@
 /* =========================
+   CONTENEUR
+   ========================= */
+
+/* C'est ce bloc qui manquait : sans lui, .game-map n'a pas
+   de taille définie et se retrouve compressé par le flex
+   du .game-content voisin (Sidebar). */
+.game-map {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 1.5rem;
+}
+
+.game-map h2 {
+  margin: 0 0 0.25rem;
+}
+
+/* =========================
+   PLATEAU
+   ========================= */
+
+/* Le plateau doit avoir une taille propre (via flex + min-height: 0)
+   pour que les stations, positionnées en %, aient un repère fiable. */
+.map-board {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fafafa;
+
+  overflow: hidden;
+}
+
+.connections {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  /* Les lignes ne doivent pas intercepter les clics
+     destinés aux stations. */
+  pointer-events: none;
+}
+
+.connection {
+  stroke: #ccc;
+  stroke-width: 3;
+}
+
+.connection-bus {
+  stroke: #4c7a9c;
+  stroke-dasharray: 8 4;
+}
+
+.connection-metro {
+  stroke: #a8402c;
+  stroke-dasharray: 2 4;
+}
+
+/* =========================
+   STATIONS
+   ========================= */
+
+.station {
+  position: absolute;
+  transform: translate(-50%, -50%);
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid #999;
+  border-radius: 50%;
+  background: #fff;
+
+  font-family: inherit;
+  cursor: not-allowed;
+
+  z-index: 1;
+}
+
+.station-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #555;
+}
+
+.station-name {
+  position: absolute;
+  top: 100%;
+  margin-top: 4px;
+
+  font-size: 0.65rem;
+  color: #666;
+  white-space: nowrap;
+}
+
+.station:disabled {
+  opacity: 0.55;
+}
+
+/* =========================
+   JOUEURS SUR LA CARTE
+   ========================= */
+
+.player-token {
+  position: absolute;
+  transform: translate(-50%, -50%);
+
+  font-size: 1.4rem;
+
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* =========================
    JOUEUR ACTIF
    ========================= */
 
@@ -12,6 +138,7 @@
    ========================= */
 
 .station-possible {
+  cursor: pointer;
   border-color: #2e8b57;
 
   box-shadow:

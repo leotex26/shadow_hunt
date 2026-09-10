@@ -24,9 +24,15 @@
 }
 
 .player {
-  padding: 0.7rem 0;
+  padding: 0.7rem 0.5rem;
 
   border-bottom: 1px solid #eee;
+}
+
+.player-active {
+  border-radius: 6px;
+  background: #f2f2f2;
+  font-weight: 600;
 }
 
 .player:last-child {
