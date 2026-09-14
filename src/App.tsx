@@ -72,6 +72,11 @@ function App() {
           : player,
       ),
     );
+
+    // Un déplacement termine le tour : le joueur suivant prend la main
+    // automatiquement. "Finir le tour" reste utile pour passer sans
+    // bouger (ex. aucun déplacement possible).
+    handleEndTurn();
   };
 
   const handleEndTurn = () => {
