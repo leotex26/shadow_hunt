@@ -3,10 +3,11 @@ import "./GameFooter.css";
 interface GameFooterProps {
   turnNumber: number;
   activePlayerName: string;
+  isHumanTurn: boolean;
   onEndTurn: () => void;
 }
 
-function GameFooter({ turnNumber, activePlayerName, onEndTurn }: GameFooterProps) {
+function GameFooter({ turnNumber, activePlayerName, isHumanTurn, onEndTurn }: GameFooterProps) {
   return (
     <footer className="game-footer">
 
@@ -15,7 +16,7 @@ function GameFooter({ turnNumber, activePlayerName, onEndTurn }: GameFooterProps
       </div>
 
       <div className="game-status">
-        À {activePlayerName} de jouer
+        {isHumanTurn ? `À ${activePlayerName} de jouer` : `${activePlayerName} joue…`}
       </div>
 
       <button className="end-turn" onClick={onEndTurn}>

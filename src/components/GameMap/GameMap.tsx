@@ -1,7 +1,7 @@
 import "./GameMap.css";
 
 import type { GameMap as GameMapData, Station, Connection } from "../../game/types/map";
-import type { Player } from "../../game/types/player";
+import type { Player, PlayerRole } from "../../game/types/player";
 import type { PossibleMove } from "../../game/engine/movement";
 
 interface GameMapProps {
@@ -9,10 +9,12 @@ interface GameMapProps {
   players: Player[];
   activePlayer: Player;
   possibleMoves: PossibleMove[];
+  // Rôle joué par l'humain : détermine si Mister X est visible sur la carte.
+  viewerRole: PlayerRole;
   onMove: (stationId: number) => void;
 }
 
-function GameMap({ map, players, activePlayer, possibleMoves, onMove }: GameMapProps) {
+function GameMap({ map, players, activePlayer, possibleMoves, viewerRole, onMove }: GameMapProps) {
   const getStation = (id: number): Station | undefined => {
     return map.stations.find((station) => station.id === id);
   };
@@ -92,8 +94,8 @@ function GameMap({ map, players, activePlayer, possibleMoves, onMove }: GameMapP
             return null;
           }
 
-          // Mister X reste caché.
-          if (player.role === "mister-x") {
+          // Mister X reste caché, sauf pour le joueur qui l'incarne.
+          if (player.role === "mister-x" && viewerRole !== "mister-x") {
             return null;
           }
 
@@ -106,7 +108,7 @@ function GameMap({ map, players, activePlayer, possibleMoves, onMove }: GameMapP
                 top: `${station.y}%`,
               }}
             >
-              👮
+              {player.role === "mister-x" ? "🎩" : "👮"}
             </div>
           );
         })}

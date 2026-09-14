@@ -1,14 +1,18 @@
 import "./Sidebar.css";
 
-import type { Player } from "../../game/types/player";
+import type { Player, PlayerRole } from "../../game/types/player";
 
 interface SidebarProps {
   players: Player[];
   activePlayerId: string;
+  // Rôle joué par l'humain : détermine si on peut afficher les tickets
+  // du joueur actif (pas question de montrer ceux du camp adverse).
+  viewerRole: PlayerRole;
 }
 
-function Sidebar({ players, activePlayerId }: SidebarProps) {
+function Sidebar({ players, activePlayerId, viewerRole }: SidebarProps) {
   const activePlayer = players.find((player) => player.id === activePlayerId);
+  const canSeeActivePlayerTickets = activePlayer?.role === viewerRole;
 
   return (
     <aside className="sidebar">
@@ -36,7 +40,7 @@ function Sidebar({ players, activePlayerId }: SidebarProps) {
         </p>
       </section>
 
-      {activePlayer && (
+      {activePlayer && canSeeActivePlayerTickets && (
         <section className="sidebar-section">
           <h2>Transports de {activePlayer.name}</h2>
 
@@ -61,6 +65,14 @@ function Sidebar({ players, activePlayerId }: SidebarProps) {
               <strong>{activePlayer.tickets.black}</strong>
             </div>
           )}
+        </section>
+      )}
+
+      {activePlayer && !canSeeActivePlayerTickets && (
+        <section className="sidebar-section">
+          <h2>Transports</h2>
+
+          <p>Le camp adverse joue son tour.</p>
         </section>
       )}
     </aside>
