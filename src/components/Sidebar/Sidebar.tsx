@@ -8,9 +8,19 @@ interface SidebarProps {
   // Rôle joué par l'humain : détermine si on peut afficher les tickets
   // du joueur actif (pas question de montrer ceux du camp adverse).
   viewerRole: PlayerRole;
+  // Tour auquel Mister X a été vu pour la dernière fois (null si jamais
+  // encore révélé), et prochain tour de révélation prévu.
+  misterXLastRevealTurn: number | null;
+  nextMisterXRevealTurn: number;
 }
 
-function Sidebar({ players, activePlayerId, viewerRole }: SidebarProps) {
+function Sidebar({
+  players,
+  activePlayerId,
+  viewerRole,
+  misterXLastRevealTurn,
+  nextMisterXRevealTurn,
+}: SidebarProps) {
   const activePlayer = players.find((player) => player.id === activePlayerId);
   const canSeeActivePlayerTickets = activePlayer?.role === viewerRole;
 
@@ -39,6 +49,20 @@ function Sidebar({ players, activePlayerId, viewerRole }: SidebarProps) {
           Sélectionnez un joueur puis une destination possible.
         </p>
       </section>
+
+      {viewerRole !== "mister-x" && (
+        <section className="sidebar-section">
+          <h2>Mister X</h2>
+
+          <p>
+            {misterXLastRevealTurn !== null
+              ? `Vu pour la dernière fois au tour ${misterXLastRevealTurn}.`
+              : "Position jamais encore révélée."}
+          </p>
+
+          <p>Prochaine révélation : tour {nextMisterXRevealTurn}.</p>
+        </section>
+      )}
 
       {activePlayer && canSeeActivePlayerTickets && (
         <section className="sidebar-section">
