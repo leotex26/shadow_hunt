@@ -11,10 +11,21 @@ interface GameMapProps {
   possibleMoves: PossibleMove[];
   // Rôle joué par l'humain : détermine si Mister X est visible sur la carte.
   viewerRole: PlayerRole;
+  // Dernière position de Mister X révélée aux détectives (null tant
+  // qu'aucune révélation n'a encore eu lieu).
+  misterXLastKnownPosition: number | null;
   onMove: (stationId: number) => void;
 }
 
-function GameMap({ map, players, activePlayer, possibleMoves, viewerRole, onMove }: GameMapProps) {
+function GameMap({
+  map,
+  players,
+  activePlayer,
+  possibleMoves,
+  viewerRole,
+  misterXLastKnownPosition,
+  onMove,
+}: GameMapProps) {
   const getStation = (id: number): Station | undefined => {
     return map.stations.find((station) => station.id === id);
   };
@@ -112,6 +123,35 @@ function GameMap({ map, players, activePlayer, possibleMoves, viewerRole, onMove
             </div>
           );
         })}
+
+        {/* =====================
+            DERNIÈRE POSITION CONNUE DE MISTER X
+            (détectives uniquement — reste affichée jusqu'à la
+            prochaine révélation)
+        ====================== */}
+
+        {viewerRole !== "mister-x" &&
+          misterXLastKnownPosition !== null &&
+          (() => {
+            const station = getStation(misterXLastKnownPosition);
+
+            if (!station) {
+              return null;
+            }
+
+            return (
+              <div
+                className="player-token player-token-last-known"
+                style={{
+                  left: `${station.x}%`,
+                  top: `${station.y}%`,
+                }}
+                title="Dernière position connue de Mister X"
+              >
+                🎩
+              </div>
+            );
+          })()}
 
         {/* =====================
             STATIONS
