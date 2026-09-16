@@ -21,6 +21,10 @@ import type { Player } from "./game/types/player";
 // en attendant qu'une vraie IA prenne ce tour en charge.
 const AI_TURN_DELAY_MS = 600;
 
+// Mister X révèle sa position tous les X tours (au sens "tour complet
+// de table", voir turnNumber plus bas).
+const MISTER_X_REVEAL_INTERVAL = 5;
+
 function App() {
   const [screen, setScreen] = useState<AppScreen>("start");
   const [config, setConfig] = useState<GameConfig | null>(null);
@@ -31,6 +35,12 @@ function App() {
   // de la table : il s'incrémente quand on revient au premier joueur.
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [turnNumber, setTurnNumber] = useState(1);
+
+  // Dernière position de Mister X révélée aux détectives, et le tour
+  // auquel elle a été révélée. Reste affichée jusqu'à la révélation
+  // suivante (donc `null` seulement avant la toute première révélation).
+  const [misterXLastKnownPosition, setMisterXLastKnownPosition] = useState<number | null>(null);
+  const [misterXLastRevealTurn, setMisterXLastRevealTurn] = useState<number | null>(null);
 
   // Tous les hooks doivent être appelés avant les `return` conditionnels
   // ci-dessous, donc les calculs qui en dépendent (map, activePlayer...)
@@ -47,6 +57,12 @@ function App() {
   // tickets qu'il possède encore. Vides quand ce n'est pas le tour du
   // joueur humain : impossible de jouer à la place du camp adverse.
   const possibleMoves = map && isHumanTurn ? getPossibleMoves(activePlayer, map) : [];
+
+  // Prochain tour auquel Mister X révélera sa position (si le tour
+  // courant en est déjà un, la révélation a lieu plus tard dans ce
+  // même tour, quand vient son tour de jeu).
+  const nextMisterXRevealTurn =
+    Math.ceil(turnNumber / MISTER_X_REVEAL_INTERVAL) * MISTER_X_REVEAL_INTERVAL;
 
   const handleMove = (stationId: number) => {
     if (!map || !isHumanTurn) {
@@ -72,6 +88,13 @@ function App() {
           : player,
       ),
     );
+
+    // Révélation périodique de Mister X : sa nouvelle position reste
+    // affichée aux détectives jusqu'à la prochaine révélation.
+    if (activePlayer.role === "mister-x" && turnNumber % MISTER_X_REVEAL_INTERVAL === 0) {
+      setMisterXLastKnownPosition(selectedMove.stationId);
+      setMisterXLastRevealTurn(turnNumber);
+    }
 
     // Un déplacement termine le tour : le joueur suivant prend la main
     // automatiquement. "Finir le tour" reste utile pour passer sans
@@ -133,6 +156,7 @@ function App() {
           activePlayer={activePlayer}
           possibleMoves={possibleMoves}
           viewerRole={config!.userRole}
+          misterXLastKnownPosition={misterXLastKnownPosition}
           onMove={handleMove}
         />
 
@@ -140,6 +164,8 @@ function App() {
           players={gamePlayers}
           activePlayerId={activePlayer.id}
           viewerRole={config!.userRole}
+          misterXLastRevealTurn={misterXLastRevealTurn}
+          nextMisterXRevealTurn={nextMisterXRevealTurn}
         />
       </main>
 
