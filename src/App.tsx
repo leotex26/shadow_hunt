@@ -12,6 +12,7 @@ import GameFooter from "./components/GameFooter/GameFooter";
 import { maps } from "./game/maps";
 import { players as initialPlayers } from "./game/players";
 import { getPossibleMoves, movePlayer } from "./game/engine/movement";
+import type { PossibleMove } from "./game/engine/movement";
 
 import type { AppScreen, GameConfig } from "./game/types/flow";
 import type { Player } from "./game/types/player";
@@ -71,33 +72,37 @@ function App() {
       (move) => move.stationId === stationId,
     );
 
-    if (movesToStation.length === 0) {
+    applyMove(activePlayer, movesToStation);
+    handleEndTurn();
+  };
+
+  // Applique un déplacement (choix humain ou coup automatique) : met à
+  // jour la position/les tickets du joueur, et déclenche la révélation
+  // de Mister X si c'est le tour qu'il faut. Ne fait rien si la liste
+  // de coups passée est vide.
+  const applyMove = (player: Player, movesForStation: PossibleMove[]) => {
+    if (movesForStation.length === 0) {
       return;
     }
 
     // S'il existe plusieurs transports vers la même station,
     // on prend le premier pour l'instant (choix explicite à venir).
-    const selectedMove = movesToStation[0];
+    const selectedMove = movesForStation[0];
 
     setGamePlayers((currentPlayers) =>
-      currentPlayers.map((player) =>
-        player.id === activePlayer.id
-          ? movePlayer(player, selectedMove.stationId, selectedMove.transports[0])
-          : player,
+      currentPlayers.map((currentPlayer) =>
+        currentPlayer.id === player.id
+          ? movePlayer(currentPlayer, selectedMove.stationId, selectedMove.transports[0])
+          : currentPlayer,
       ),
     );
 
     // Révélation périodique de Mister X : sa nouvelle position reste
     // affichée aux détectives jusqu'à la prochaine révélation.
-    if (activePlayer.role === "mister-x" && MISTER_X_REVEAL_TURNS.includes(turnNumber)) {
+    if (player.role === "mister-x" && MISTER_X_REVEAL_TURNS.includes(turnNumber)) {
       setMisterXLastKnownPosition(selectedMove.stationId);
       setMisterXLastRevealTurn(turnNumber);
     }
-
-    // Un déplacement termine le tour : le joueur suivant prend la main
-    // automatiquement. "Finir le tour" reste utile pour passer sans
-    // bouger (ex. aucun déplacement possible).
-    handleEndTurn();
   };
 
   const handleEndTurn = () => {
@@ -111,18 +116,29 @@ function App() {
     setActivePlayerIndex(nextIndex);
   };
 
-  // Passe automatiquement le tour du camp que l'humain ne joue pas.
-  // À remplacer par un vrai coup d'IA plus tard : la rotation elle-même
-  // (handleEndTurn) n'a pas besoin de changer.
+  // Fait jouer automatiquement le camp que l'humain ne contrôle pas :
+  // un déplacement aléatoire parmi ceux possibles (ou aucun s'il n'y en
+  // a pas), puis passage du tour. C'est ici que branchera une vraie IA
+  // plus tard — seul le choix du coup changera, pas la mécanique autour.
   useEffect(() => {
-    if (screen !== "game" || !config || isHumanTurn) {
+    if (screen !== "game" || !config || isHumanTurn || !map) {
       return;
     }
 
-    const timer = setTimeout(handleEndTurn, AI_TURN_DELAY_MS);
+    const timer = setTimeout(() => {
+      const aiMoves = getPossibleMoves(activePlayer, map);
+
+      if (aiMoves.length > 0) {
+        const randomMove = aiMoves[Math.floor(Math.random() * aiMoves.length)];
+        applyMove(activePlayer, [randomMove]);
+      }
+
+      handleEndTurn();
+    }, AI_TURN_DELAY_MS);
+
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, config, activePlayerIndex, isHumanTurn]);
+  }, [screen, config, activePlayerIndex, isHumanTurn, map]);
 
   if (screen === "start") {
     return <StartScreen onStart={() => setScreen("setup")} />;
