@@ -9,9 +9,10 @@ interface SidebarProps {
   // du joueur actif (pas question de montrer ceux du camp adverse).
   viewerRole: PlayerRole;
   // Tour auquel Mister X a été vu pour la dernière fois (null si jamais
-  // encore révélé), et prochain tour de révélation prévu.
+  // encore révélé), et prochain tour de révélation prévu (null si toutes
+  // les révélations de la partie ont déjà eu lieu).
   misterXLastRevealTurn: number | null;
-  nextMisterXRevealTurn: number;
+  nextMisterXRevealTurn: number | null;
 }
 
 function Sidebar({
@@ -60,7 +61,11 @@ function Sidebar({
               : "Position jamais encore révélée."}
           </p>
 
-          <p>Prochaine révélation : tour {nextMisterXRevealTurn}.</p>
+          <p>
+            {nextMisterXRevealTurn !== null
+              ? `Prochaine révélation : tour ${nextMisterXRevealTurn}.`
+              : "Aucune révélation supplémentaire prévue."}
+          </p>
         </section>
       )}
 

@@ -21,9 +21,9 @@ import type { Player } from "./game/types/player";
 // en attendant qu'une vraie IA prenne ce tour en charge.
 const AI_TURN_DELAY_MS = 600;
 
-// Mister X révèle sa position tous les X tours (au sens "tour complet
-// de table", voir turnNumber plus bas).
-const MISTER_X_REVEAL_INTERVAL = 5;
+// Tours de révélation classiques de Scotland Yard : Mister X est démasqué
+// aux tours 3, 8, 13, 18 et 24 (aucune révélation supplémentaire après).
+const MISTER_X_REVEAL_TURNS = [3, 8, 13, 18, 24];
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>("start");
@@ -58,11 +58,9 @@ function App() {
   // joueur humain : impossible de jouer à la place du camp adverse.
   const possibleMoves = map && isHumanTurn ? getPossibleMoves(activePlayer, map) : [];
 
-  // Prochain tour auquel Mister X révélera sa position (si le tour
-  // courant en est déjà un, la révélation a lieu plus tard dans ce
-  // même tour, quand vient son tour de jeu).
-  const nextMisterXRevealTurn =
-    Math.ceil(turnNumber / MISTER_X_REVEAL_INTERVAL) * MISTER_X_REVEAL_INTERVAL;
+  // Prochain tour auquel Mister X révélera sa position (null s'il n'y
+  // en a plus, le tour courant ayant dépassé la dernière révélation).
+  const nextMisterXRevealTurn = MISTER_X_REVEAL_TURNS.find((turn) => turn >= turnNumber) ?? null;
 
   const handleMove = (stationId: number) => {
     if (!map || !isHumanTurn) {
@@ -91,7 +89,7 @@ function App() {
 
     // Révélation périodique de Mister X : sa nouvelle position reste
     // affichée aux détectives jusqu'à la prochaine révélation.
-    if (activePlayer.role === "mister-x" && turnNumber % MISTER_X_REVEAL_INTERVAL === 0) {
+    if (activePlayer.role === "mister-x" && MISTER_X_REVEAL_TURNS.includes(turnNumber)) {
       setMisterXLastKnownPosition(selectedMove.stationId);
       setMisterXLastRevealTurn(turnNumber);
     }
