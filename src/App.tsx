@@ -73,6 +73,11 @@ function App() {
   // en a plus, le tour courant ayant dépassé la dernière révélation).
   const nextMisterXRevealTurn = MISTER_X_REVEAL_TURNS.find((turn) => turn >= turnNumber) ?? null;
 
+  // Règle officielle : un détective ne peut pas passer son tour tant
+  // qu'un déplacement lui est possible (Mister X, lui, le peut : il n'a
+  // pas cette contrainte).
+  const mustMove = isHumanTurn && activePlayer.role === "detective" && possibleMoves.length > 0;
+
   const handleMove = (stationId: number) => {
     if (!map || !isHumanTurn || winner) {
       return;
@@ -184,6 +189,16 @@ function App() {
     setScreen("start");
   };
 
+  // Utilisé uniquement par le bouton "Finir le tour" : refuse de passer
+  // si le joueur humain est un détective qui peut encore se déplacer.
+  const handleManualEndTurn = () => {
+    if (mustMove) {
+      return;
+    }
+
+    handleEndTurn();
+  };
+
   // Fait jouer automatiquement le camp que l'humain ne contrôle pas :
   // un déplacement aléatoire parmi ceux possibles (ou aucun s'il n'y en
   // a pas), puis passage du tour. C'est ici que branchera une vraie IA
@@ -287,7 +302,8 @@ function App() {
         turnNumber={turnNumber}
         activePlayerName={activePlayer.name}
         isHumanTurn={isHumanTurn}
-        onEndTurn={handleEndTurn}
+        mustMove={mustMove}
+        onEndTurn={handleManualEndTurn}
       />
     </div>
   );
