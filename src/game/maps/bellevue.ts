@@ -186,4 +186,34 @@ export const bellevue: GameMap = {
       transports: ["taxi", "bus", "metro"],
     },
   ],
+
+  // Bellevue est une petite carte de test (11 stations) : des tickets et
+  // une durée de partie calqués sur la vraie carte de Scotland Yard (qui
+  // en compte environ 200) ne laisseraient aucune chance à Mister X — le
+  // territoire à couvrir pour le retrouver est bien trop réduit.
+  balance: {
+    ticketsByRole: {
+      detective: {
+        taxi: 4,
+        bus: 3,
+        metro: 2,
+      },
+
+      "mister-x": {
+        taxi: 4,
+        bus: 3,
+        metro: 2,
+        black: 2,
+      },
+    },
+
+    startingPositions: {
+      detectives: [2, 5],
+      misterX: 8,
+    },
+
+    // Une révélation tous les 3 tours, jusqu'au dernier.
+    revealTurns: [3, 6, 9, 12],
+    finalTurn: 12,
+  },
 };
