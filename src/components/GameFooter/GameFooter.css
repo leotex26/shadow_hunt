@@ -32,3 +32,8 @@
 
   font-size: 1rem;
 }
+
+.end-turn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
