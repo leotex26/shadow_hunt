@@ -12,10 +12,10 @@ import GameFooter from "./components/GameFooter/GameFooter";
 import { maps } from "./game/maps";
 import { players as initialPlayers } from "./game/players";
 import { getPossibleMoves, movePlayer } from "./game/engine/movement";
-import type { PossibleMove } from "./game/engine/movement";
 
 import type { AppScreen, GameConfig } from "./game/types/flow";
 import type { Player } from "./game/types/player";
+import type { TransportType } from "./game/types/map";
 
 // Délai avant de passer automatiquement le tour du camp non joué par
 // l'humain. Purement cosmétique (le temps de voir "à Mister X de jouer")
@@ -78,16 +78,21 @@ function App() {
   // pas cette contrainte).
   const mustMove = isHumanTurn && activePlayer.role === "detective" && possibleMoves.length > 0;
 
-  const handleMove = (stationId: number) => {
+  const handleMove = (stationId: number, transport: TransportType) => {
     if (!map || !isHumanTurn || winner) {
       return;
     }
 
-    const movesToStation = possibleMoves.filter(
-      (move) => move.stationId === stationId,
-    );
+    // Sécurité : on vérifie que ce transport est bien l'un de ceux
+    // réellement disponibles vers cette station (tickets compris),
+    // plutôt que de faire confiance à ce que le composant renvoie.
+    const move = possibleMoves.find((possibleMove) => possibleMove.stationId === stationId);
 
-    const captured = applyMove(activePlayer, movesToStation);
+    if (!move || !move.transports.includes(transport)) {
+      return;
+    }
+
+    const captured = applyMove(activePlayer, stationId, transport);
 
     if (!captured) {
       handleEndTurn();
@@ -95,22 +100,14 @@ function App() {
   };
 
   // Applique un déplacement (choix humain ou coup automatique) : met à
-  // jour la position/les tickets du joueur, déclenche la révélation de
-  // Mister X si c'est le tour qu'il faut, et détecte une capture.
-  // Ne fait rien si la liste de coups passée est vide.
+  // jour la position/les tickets du joueur avec le transport précis
+  // choisi, déclenche la révélation de Mister X si c'est le tour qu'il
+  // faut, et détecte une capture.
   // Retourne `true` si ce déplacement vient de mettre fin à la partie.
-  const applyMove = (player: Player, movesForStation: PossibleMove[]): boolean => {
-    if (movesForStation.length === 0) {
-      return false;
-    }
-
-    // S'il existe plusieurs transports vers la même station,
-    // on prend le premier pour l'instant (choix explicite à venir).
-    const selectedMove = movesForStation[0];
-
+  const applyMove = (player: Player, stationId: number, transport: TransportType): boolean => {
     const nextPlayers = gamePlayers.map((currentPlayer) =>
       currentPlayer.id === player.id
-        ? movePlayer(currentPlayer, selectedMove.stationId, selectedMove.transports[0])
+        ? movePlayer(currentPlayer, stationId, transport)
         : currentPlayer,
     );
 
@@ -119,7 +116,7 @@ function App() {
     // Révélation périodique de Mister X : sa nouvelle position reste
     // affichée aux détectives jusqu'à la prochaine révélation.
     if (player.role === "mister-x" && MISTER_X_REVEAL_TURNS.includes(turnNumber)) {
-      setMisterXLastKnownPosition(selectedMove.stationId);
+      setMisterXLastKnownPosition(stationId);
       setMisterXLastRevealTurn(turnNumber);
     }
 
@@ -210,11 +207,19 @@ function App() {
 
     const timer = setTimeout(() => {
       const aiMoves = getPossibleMoves(activePlayer, map);
+
+      // On aplatit en paires (station, transport) pour tirer au sort
+      // uniformément parmi toutes les combinaisons réellement possibles,
+      // plutôt que de toujours prendre le premier transport de la liste.
+      const options = aiMoves.flatMap((move) =>
+        move.transports.map((transport) => ({ stationId: move.stationId, transport })),
+      );
+
       let captured = false;
 
-      if (aiMoves.length > 0) {
-        const randomMove = aiMoves[Math.floor(Math.random() * aiMoves.length)];
-        captured = applyMove(activePlayer, [randomMove]);
+      if (options.length > 0) {
+        const choice = options[Math.floor(Math.random() * options.length)];
+        captured = applyMove(activePlayer, choice.stationId, choice.transport);
       }
 
       if (!captured) {
