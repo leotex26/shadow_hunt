@@ -18,7 +18,11 @@ export function getPossibleMoves(
   player: Player,
   map: GameMap
 ): PossibleMove[] {
-  const possibleMoves: PossibleMove[] = [];
+  // On regroupe par destination plutôt que par connexion : si deux
+  // connexions mènent à la même station (ex. doublon dans les données
+  // de la carte), elles fusionnent en une seule entrée au lieu de
+  // proposer deux fois le même transport.
+  const transportsByDestination = new Map<number, Set<TransportType>>();
 
   // On cherche toutes les connexions
   // reliées à la position actuelle.
@@ -48,13 +52,17 @@ export function getPossibleMoves(
       continue;
     }
 
-    possibleMoves.push({
-      stationId: destination,
-      transports: availableTransports,
-    });
+    const transports = transportsByDestination.get(destination) ?? new Set<TransportType>();
+    availableTransports.forEach((transport) => transports.add(transport));
+    transportsByDestination.set(destination, transports);
   }
 
-  return possibleMoves;
+  return Array.from(transportsByDestination.entries()).map(
+    ([stationId, transports]) => ({
+      stationId,
+      transports: Array.from(transports),
+    }),
+  );
 }
 
 export function movePlayer(
