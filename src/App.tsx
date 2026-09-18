@@ -10,7 +10,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import GameFooter from "./components/GameFooter/GameFooter";
 
 import { maps } from "./game/maps";
-import { players as initialPlayers } from "./game/players";
+import { createInitialPlayers } from "./game/players";
 import { getPossibleMoves, movePlayer } from "./game/engine/movement";
 
 import type { AppScreen, GameConfig } from "./game/types/flow";
@@ -22,18 +22,18 @@ import type { TransportType } from "./game/types/map";
 // en attendant qu'une vraie IA prenne ce tour en charge.
 const AI_TURN_DELAY_MS = 600;
 
-// Tours de révélation classiques de Scotland Yard : Mister X est démasqué
-// aux tours 3, 8, 13, 18 et 24 (aucune révélation supplémentaire après).
-const MISTER_X_REVEAL_TURNS = [3, 8, 13, 18, 24];
-
-// Dernier tour de la partie : si Mister X n'est pas capturé avant la fin
-// de ce tour, il gagne.
-const FINAL_TURN = 24;
+// Carte utilisée par défaut tant qu'aucune partie n'a encore démarré
+// (juste pour donner un état initial cohérent à `gamePlayers` sur les
+// écrans d'accueil/configuration — elle est remplacée dès que la vraie
+// carte est choisie dans GameSetup).
+const placeholderMap = Object.values(maps)[0];
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>("start");
   const [config, setConfig] = useState<GameConfig | null>(null);
-  const [gamePlayers, setGamePlayers] = useState<Player[]>(initialPlayers);
+  const [gamePlayers, setGamePlayers] = useState<Player[]>(() =>
+    createInitialPlayers(placeholderMap),
+  );
 
   // Index du joueur dont c'est le tour dans `gamePlayers`.
   // Un "Tour" (au sens du compteur affiché) correspond à un tour complet
@@ -59,6 +59,13 @@ function App() {
   const map = config ? maps[config.mapId] : null;
   const activePlayer = gamePlayers[activePlayerIndex];
 
+  // Tours de révélation et durée de partie propres à la carte en cours
+  // (voir bellevue.ts, champ `balance`). Tableaux/valeurs "vides" tant
+  // qu'aucune carte n'est encore choisie — sans incidence, puisque tout
+  // ce qui les utilise est de toute façon gardé par `screen === "game"`.
+  const revealTurns = map?.balance.revealTurns ?? [];
+  const finalTurn = map?.balance.finalTurn ?? Infinity;
+
   // Le joueur humain ne contrôle que le camp choisi dans GameSetup.
   // L'autre camp n'a pas encore d'IA : on se contente, pour l'instant,
   // de lui faire passer son tour automatiquement (voir l'effet ci-dessous).
@@ -71,7 +78,7 @@ function App() {
 
   // Prochain tour auquel Mister X révélera sa position (null s'il n'y
   // en a plus, le tour courant ayant dépassé la dernière révélation).
-  const nextMisterXRevealTurn = MISTER_X_REVEAL_TURNS.find((turn) => turn >= turnNumber) ?? null;
+  const nextMisterXRevealTurn = revealTurns.find((turn) => turn >= turnNumber) ?? null;
 
   // Règle officielle : un détective ne peut pas passer son tour tant
   // qu'un déplacement lui est possible (Mister X, lui, le peut : il n'a
@@ -115,7 +122,7 @@ function App() {
 
     // Révélation périodique de Mister X : sa nouvelle position reste
     // affichée aux détectives jusqu'à la prochaine révélation.
-    if (player.role === "mister-x" && MISTER_X_REVEAL_TURNS.includes(turnNumber)) {
+    if (player.role === "mister-x" && revealTurns.includes(turnNumber)) {
       setMisterXLastKnownPosition(stationId);
       setMisterXLastRevealTurn(turnNumber);
     }
@@ -148,8 +155,9 @@ function App() {
     const nextIndex = (activePlayerIndex + 1) % gamePlayers.length;
 
     if (nextIndex === 0) {
-      // Le tour 24 vient de se terminer sans capture : Mister X survit.
-      if (turnNumber >= FINAL_TURN) {
+      // Le dernier tour de la carte vient de se terminer sans capture :
+      // Mister X survit.
+      if (turnNumber >= finalTurn) {
         setWinner("mister-x");
         return;
       }
@@ -176,7 +184,7 @@ function App() {
   };
 
   const resetGame = () => {
-    setGamePlayers(initialPlayers);
+    setGamePlayers(createInitialPlayers(placeholderMap));
     setActivePlayerIndex(0);
     setTurnNumber(1);
     setMisterXLastKnownPosition(null);
@@ -241,6 +249,7 @@ function App() {
         onBack={() => setScreen("start")}
         onConfirm={(selectedConfig) => {
           setConfig(selectedConfig);
+          setGamePlayers(createInitialPlayers(maps[selectedConfig.mapId]));
           setScreen("game");
         }}
       />
