@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./GameMap.css";
 
 import type { GameMap as GameMapData, Station, TransportType } from "../../game/types/map";
 import type { Player, PlayerRole } from "../../game/types/player";
 import type { PossibleMove } from "../../game/engine/movement";
+
+// Écart, en pixels, entre deux lignes de transport parallèles sur un
+// même trajet (ex. taxi + bus + métro entre les deux mêmes stations).
+const CONNECTION_LINE_SPACING_PX = 5;
 
 interface GameMapProps {
   map: GameMapData;
@@ -36,6 +40,38 @@ function GameMap({
   useEffect(() => {
     setPendingStationId(null);
   }, [activePlayer.id]);
+
+  // Taille réelle (en pixels) du plateau, pour convertir les coordonnées
+  // en % des stations en vraies positions et pouvoir calculer un
+  // décalage perpendiculaire correct entre lignes parallèles — un calcul
+  // fait uniquement en %, sans connaître les dimensions réelles, donnerait
+  // des angles faussés dès que le plateau n'est pas parfaitement carré.
+  const mapBoardRef = useRef<HTMLDivElement>(null);
+  const [boardSize, setBoardSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const element = mapBoardRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const updateSize = () => {
+      setBoardSize({ width: element.clientWidth, height: element.clientHeight });
+    };
+
+    updateSize();
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const toPixels = (station: Station) => ({
+    x: (station.x / 100) * boardSize.width,
+    y: (station.y / 100) * boardSize.height,
+  });
 
   const getStation = (id: number): Station | undefined => {
     return map.stations.find((station) => station.id === id);
@@ -108,7 +144,7 @@ function GameMap({
         Tour de : <strong>{activePlayer.name}</strong>
       </p>
 
-      <div className="map-board">
+      <div className="map-board" ref={mapBoardRef}>
         {/* =====================
             CONNEXIONS
         ====================== */}
@@ -122,21 +158,38 @@ function GameMap({
               return null;
             }
 
+            const fromPx = toPixels(from);
+            const toPx = toPixels(to);
+
+            const dx = toPx.x - fromPx.x;
+            const dy = toPx.y - fromPx.y;
+            const length = Math.hypot(dx, dy) || 1;
+
+            // Vecteur unitaire perpendiculaire au trajet : c'est lui qui
+            // permet d'écarter les lignes parallèles au lieu qu'elles se
+            // superposent exactement (comme sur le vrai plateau).
+            const perpX = -dy / length;
+            const perpY = dx / length;
+
+            const transportCount = connection.transports.length;
+
             return (
               <g key={index}>
-                {connection.transports.map((transport, transportIndex) => (
-                  <line
-                    key={`${transport}-${transportIndex}`}
-                    x1={`${from.x}%`}
-                    y1={`${from.y}%`}
-                    x2={`${to.x}%`}
-                    y2={`${to.y}%`}
-                    className={`
-                connection
-                connection-${transport}
-              `}
-                  />
-                ))}
+                {connection.transports.map((transport, transportIndex) => {
+                  const offset =
+                    (transportIndex - (transportCount - 1) / 2) * CONNECTION_LINE_SPACING_PX;
+
+                  return (
+                    <line
+                      key={transport}
+                      x1={fromPx.x + perpX * offset}
+                      y1={fromPx.y + perpY * offset}
+                      x2={toPx.x + perpX * offset}
+                      y2={toPx.y + perpY * offset}
+                      className={`connection connection-${transport}`}
+                    />
+                  );
+                })}
               </g>
             );
           })}
