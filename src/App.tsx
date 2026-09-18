@@ -26,6 +26,10 @@ const AI_TURN_DELAY_MS = 600;
 // aux tours 3, 8, 13, 18 et 24 (aucune révélation supplémentaire après).
 const MISTER_X_REVEAL_TURNS = [3, 8, 13, 18, 24];
 
+// Dernier tour de la partie : si Mister X n'est pas capturé avant la fin
+// de ce tour, il gagne.
+const FINAL_TURN = 24;
+
 function App() {
   const [screen, setScreen] = useState<AppScreen>("start");
   const [config, setConfig] = useState<GameConfig | null>(null);
@@ -43,10 +47,11 @@ function App() {
   const [misterXLastKnownPosition, setMisterXLastKnownPosition] = useState<number | null>(null);
   const [misterXLastRevealTurn, setMisterXLastRevealTurn] = useState<number | null>(null);
 
-  // Défini dès qu'un détective se pose sur la case de Mister X — même
-  // s'il ne le "savait" pas, sa position étant cachée entre deux
-  // révélations. Fige la partie une fois non-null.
-  const [winner, setWinner] = useState<"detectives" | null>(null);
+  // Défini dès qu'un détective se pose sur la case de Mister X, que
+  // Mister X survit jusqu'au dernier tour, ou que tous les détectives
+  // sont bloqués (plus aucun déplacement possible). Fige la partie une
+  // fois non-null.
+  const [winner, setWinner] = useState<"detectives" | "mister-x" | null>(null);
 
   // Tous les hooks doivent être appelés avant les `return` conditionnels
   // ci-dessous, donc les calculs qui en dépendent (map, activePlayer...)
@@ -140,8 +145,28 @@ function App() {
   const handleEndTurn = () => {
     const nextIndex = (activePlayerIndex + 1) % gamePlayers.length;
 
-    // On a fait le tour de tous les joueurs : le compteur de tour avance.
     if (nextIndex === 0) {
+      // Le tour 24 vient de se terminer sans capture : Mister X survit.
+      if (turnNumber >= FINAL_TURN) {
+        setWinner("mister-x");
+        return;
+      }
+
+      // Plus aucun détective ne peut se déplacer (tickets épuisés,
+      // impasse...) : Mister X gagne aussi.
+      if (map) {
+        const detectives = gamePlayers.filter((player) => player.role === "detective");
+        const allDetectivesStuck = detectives.every(
+          (detective) => getPossibleMoves(detective, map).length === 0,
+        );
+
+        if (allDetectivesStuck) {
+          setWinner("mister-x");
+          return;
+        }
+      }
+
+      // On a fait le tour de tous les joueurs : le compteur de tour avance.
       setTurnNumber((currentTurn) => currentTurn + 1);
     }
 
@@ -213,12 +238,18 @@ function App() {
 
     return (
       <div className="game-over">
-        <h1>Mister X a été démasqué !</h1>
+        <h1>
+          {winner === "detectives"
+            ? "Mister X a été démasqué !"
+            : "Mister X s'échappe !"}
+        </h1>
 
         <p>
-          {captureStation
-            ? `Rattrapé à la station ${captureStation.name}.`
-            : "Rattrapé par les détectives."}
+          {winner === "detectives"
+            ? captureStation
+              ? `Rattrapé à la station ${captureStation.name}.`
+              : "Rattrapé par les détectives."
+            : "Les détectives n'ont pas réussi à le rattraper."}
         </p>
 
         <button type="button" onClick={resetGame}>
