@@ -171,12 +171,6 @@ export const bellevue: GameMap = {
     },
 
     {
-      from: 6,
-      to: 9,
-      transports: ["taxi", "metro"],
-    },
-
-    {
       from: 9,
       to: 10,
       transports: ["taxi", "metro"],
