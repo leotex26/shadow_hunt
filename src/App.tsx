@@ -43,6 +43,11 @@ function App() {
   const [misterXLastKnownPosition, setMisterXLastKnownPosition] = useState<number | null>(null);
   const [misterXLastRevealTurn, setMisterXLastRevealTurn] = useState<number | null>(null);
 
+  // Défini dès qu'un détective se pose sur la case de Mister X — même
+  // s'il ne le "savait" pas, sa position étant cachée entre deux
+  // révélations. Fige la partie une fois non-null.
+  const [winner, setWinner] = useState<"detectives" | null>(null);
+
   // Tous les hooks doivent être appelés avant les `return` conditionnels
   // ci-dessous, donc les calculs qui en dépendent (map, activePlayer...)
   // sont faits ici avec des gardes plutôt que dans la branche "game".
@@ -64,7 +69,7 @@ function App() {
   const nextMisterXRevealTurn = MISTER_X_REVEAL_TURNS.find((turn) => turn >= turnNumber) ?? null;
 
   const handleMove = (stationId: number) => {
-    if (!map || !isHumanTurn) {
+    if (!map || !isHumanTurn || winner) {
       return;
     }
 
@@ -72,30 +77,34 @@ function App() {
       (move) => move.stationId === stationId,
     );
 
-    applyMove(activePlayer, movesToStation);
-    handleEndTurn();
+    const captured = applyMove(activePlayer, movesToStation);
+
+    if (!captured) {
+      handleEndTurn();
+    }
   };
 
   // Applique un déplacement (choix humain ou coup automatique) : met à
-  // jour la position/les tickets du joueur, et déclenche la révélation
-  // de Mister X si c'est le tour qu'il faut. Ne fait rien si la liste
-  // de coups passée est vide.
-  const applyMove = (player: Player, movesForStation: PossibleMove[]) => {
+  // jour la position/les tickets du joueur, déclenche la révélation de
+  // Mister X si c'est le tour qu'il faut, et détecte une capture.
+  // Ne fait rien si la liste de coups passée est vide.
+  // Retourne `true` si ce déplacement vient de mettre fin à la partie.
+  const applyMove = (player: Player, movesForStation: PossibleMove[]): boolean => {
     if (movesForStation.length === 0) {
-      return;
+      return false;
     }
 
     // S'il existe plusieurs transports vers la même station,
     // on prend le premier pour l'instant (choix explicite à venir).
     const selectedMove = movesForStation[0];
 
-    setGamePlayers((currentPlayers) =>
-      currentPlayers.map((currentPlayer) =>
-        currentPlayer.id === player.id
-          ? movePlayer(currentPlayer, selectedMove.stationId, selectedMove.transports[0])
-          : currentPlayer,
-      ),
+    const nextPlayers = gamePlayers.map((currentPlayer) =>
+      currentPlayer.id === player.id
+        ? movePlayer(currentPlayer, selectedMove.stationId, selectedMove.transports[0])
+        : currentPlayer,
     );
+
+    setGamePlayers(nextPlayers);
 
     // Révélation périodique de Mister X : sa nouvelle position reste
     // affichée aux détectives jusqu'à la prochaine révélation.
@@ -103,6 +112,29 @@ function App() {
       setMisterXLastKnownPosition(selectedMove.stationId);
       setMisterXLastRevealTurn(turnNumber);
     }
+
+    // Capture : un détective (celui qui vient de bouger, ou Mister X qui
+    // vient de se déplacer droit sur un détective) partage la case de
+    // Mister X. La partie s'arrête immédiatement.
+    const misterX = nextPlayers.find((currentPlayer) => currentPlayer.role === "mister-x");
+    const isCaught =
+      misterX !== undefined &&
+      nextPlayers.some(
+        (currentPlayer) =>
+          currentPlayer.role === "detective" && currentPlayer.position === misterX.position,
+      );
+
+    if (isCaught && misterX) {
+      setWinner("detectives");
+
+      // Il est de toute façon démasqué à cet instant.
+      setMisterXLastKnownPosition(misterX.position);
+      setMisterXLastRevealTurn(turnNumber);
+
+      return true;
+    }
+
+    return false;
   };
 
   const handleEndTurn = () => {
@@ -116,29 +148,43 @@ function App() {
     setActivePlayerIndex(nextIndex);
   };
 
+  const resetGame = () => {
+    setGamePlayers(initialPlayers);
+    setActivePlayerIndex(0);
+    setTurnNumber(1);
+    setMisterXLastKnownPosition(null);
+    setMisterXLastRevealTurn(null);
+    setWinner(null);
+    setConfig(null);
+    setScreen("start");
+  };
+
   // Fait jouer automatiquement le camp que l'humain ne contrôle pas :
   // un déplacement aléatoire parmi ceux possibles (ou aucun s'il n'y en
   // a pas), puis passage du tour. C'est ici que branchera une vraie IA
   // plus tard — seul le choix du coup changera, pas la mécanique autour.
   useEffect(() => {
-    if (screen !== "game" || !config || isHumanTurn || !map) {
+    if (screen !== "game" || !config || isHumanTurn || !map || winner) {
       return;
     }
 
     const timer = setTimeout(() => {
       const aiMoves = getPossibleMoves(activePlayer, map);
+      let captured = false;
 
       if (aiMoves.length > 0) {
         const randomMove = aiMoves[Math.floor(Math.random() * aiMoves.length)];
-        applyMove(activePlayer, [randomMove]);
+        captured = applyMove(activePlayer, [randomMove]);
       }
 
-      handleEndTurn();
+      if (!captured) {
+        handleEndTurn();
+      }
     }, AI_TURN_DELAY_MS);
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, config, activePlayerIndex, isHumanTurn, map]);
+  }, [screen, config, activePlayerIndex, isHumanTurn, map, winner]);
 
   if (screen === "start") {
     return <StartScreen onStart={() => setScreen("setup")} />;
@@ -159,6 +205,29 @@ function App() {
   // screen === "game"
   // `config` et `map` sont garantis définis ici : on ne passe à "game"
   // qu'après GameSetup.onConfirm.
+  if (winner) {
+    const captureStation =
+      misterXLastKnownPosition !== null
+        ? map!.stations.find((station) => station.id === misterXLastKnownPosition)
+        : undefined;
+
+    return (
+      <div className="game-over">
+        <h1>Mister X a été démasqué !</h1>
+
+        <p>
+          {captureStation
+            ? `Rattrapé à la station ${captureStation.name}.`
+            : "Rattrapé par les détectives."}
+        </p>
+
+        <button type="button" onClick={resetGame}>
+          Nouvelle partie
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="game">
       <Header mapName={map!.name} />

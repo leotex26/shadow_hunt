@@ -14,3 +14,32 @@
 
   overflow: hidden;
 }
+
+.game-over {
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+
+  text-align: center;
+}
+
+.game-over button {
+  padding: 0.85rem 2.25rem;
+
+  border: 1px solid #333;
+  border-radius: 8px;
+
+  background: #fff;
+  font-size: 1rem;
+
+  cursor: pointer;
+}
+
+.game-over button:hover {
+  background: #333;
+  color: #fff;
+}
