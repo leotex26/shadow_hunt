@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 import StartScreen from "./components/screens/StartScreen/StartScreen";
+import Rules from "./components/screens/Rules/Rules";
 import GameSetup from "./components/screens/GameSetup/GameSetup";
 
 import Header from "./components/Header/Header";
@@ -353,10 +354,15 @@ function App() {
     return (
       <StartScreen
         onStart={() => setScreen("setup")}
+        onShowRules={() => setScreen("rules")}
         hasSavedGame={loadGame() !== null}
         onResume={resumeGame}
       />
     );
+  }
+
+  if (screen === "rules") {
+    return <Rules onBack={() => setScreen("start")} />;
   }
 
   if (screen === "setup") {
