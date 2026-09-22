@@ -2,9 +2,11 @@ import "./StartScreen.css";
 
 interface StartScreenProps {
   onStart: () => void;
+  hasSavedGame: boolean;
+  onResume: () => void;
 }
 
-function StartScreen({ onStart }: StartScreenProps) {
+function StartScreen({ onStart, hasSavedGame, onResume }: StartScreenProps) {
   return (
     <div className="start-screen">
       <div className="start-screen__content">
@@ -17,6 +19,16 @@ function StartScreen({ onStart }: StartScreenProps) {
         <p className="start-screen__tagline">
           Un fugitif. Une poignée de détectives. Une ville qui ne dit rien.
         </p>
+
+        {hasSavedGame && (
+          <button
+            type="button"
+            className="start-screen__cta start-screen__cta--resume"
+            onClick={onResume}
+          >
+            Reprendre la partie
+          </button>
+        )}
 
         <button
           type="button"
