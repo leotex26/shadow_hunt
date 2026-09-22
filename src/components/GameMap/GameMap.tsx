@@ -3,7 +3,8 @@ import "./GameMap.css";
 
 import type { GameMap as GameMapData, Station, TransportType } from "../../game/types/map";
 import type { Player, PlayerRole } from "../../game/types/player";
-import type { PossibleMove } from "../../game/engine/movement";
+import type { PossibleMove, TicketPayment } from "../../game/engine/movement";
+import { getTransportSymbol } from "../../game/ui/transportSymbols";
 
 // Écart, en pixels, entre deux lignes de transport parallèles sur un
 // même trajet (ex. taxi + bus + métro entre les deux mêmes stations).
@@ -19,7 +20,7 @@ interface GameMapProps {
   // Dernière position de Mister X révélée aux détectives (null tant
   // qu'aucune révélation n'a encore eu lieu).
   misterXLastKnownPosition: number | null;
-  onMove: (stationId: number, transport: TransportType) => void;
+  onMove: (stationId: number, transport: TransportType, payment: TicketPayment) => void;
 }
 
 function GameMap({
@@ -40,6 +41,15 @@ function GameMap({
   useEffect(() => {
     setPendingStationId(null);
   }, [activePlayer.id]);
+
+  // Mister X, tant qu'il lui reste un ticket noir, peut choisir de payer
+  // avec pour cacher aux détectives le transport réellement utilisé —
+  // donc, dans ce cas, il y a toujours un choix à faire, même vers une
+  // station qui n'a qu'un seul transport.
+  const canUseBlackTicket =
+    activePlayer.role === "mister-x" &&
+    viewerRole === "mister-x" &&
+    (activePlayer.tickets.black ?? 0) > 0;
 
   // Taille réelle (en pixels) du plateau, pour convertir les coordonnées
   // en % des stations en vraies positions et pouvoir calculer un
@@ -77,19 +87,6 @@ function GameMap({
     return map.stations.find((station) => station.id === id);
   };
 
-  const getTransportSymbol = (transport: TransportType) => {
-    switch (transport) {
-      case "taxi":
-        return "🚕";
-
-      case "bus":
-        return "🚌";
-
-      case "metro":
-        return "🚇";
-    }
-  };
-
   // Retourne tous les moyens de transport permettant
   // d'atteindre une station, déjà filtrés par ticket disponible
   // (voir game/engine/movement.ts : getPossibleMoves).
@@ -99,16 +96,17 @@ function GameMap({
       .flatMap((move) => move.transports);
   };
 
-  // Un seul transport possible : on part directement, rien à choisir.
-  // Plusieurs : on ouvre (ou referme, si déjà ouvert) le sélecteur au
-  // lieu de partir immédiatement avec le premier de la liste.
+  // Un seul transport possible ET rien à décider en plus (pas de ticket
+  // noir à envisager) : on part directement, rien à choisir. Sinon, on
+  // ouvre (ou referme, si déjà ouvert) le sélecteur au lieu de partir
+  // immédiatement avec le premier transport de la liste.
   const handleStationClick = (stationId: number, transports: TransportType[]) => {
     if (transports.length === 0) {
       return;
     }
 
-    if (transports.length === 1) {
-      onMove(stationId, transports[0]);
+    if (transports.length === 1 && !canUseBlackTicket) {
+      onMove(stationId, transports[0], transports[0]);
       setPendingStationId(null);
       return;
     }
@@ -116,8 +114,8 @@ function GameMap({
     setPendingStationId((current) => (current === stationId ? null : stationId));
   };
 
-  const confirmMove = (stationId: number, transport: TransportType) => {
-    onMove(stationId, transport);
+  const confirmMove = (stationId: number, transport: TransportType, payment: TicketPayment) => {
+    onMove(stationId, transport, payment);
     setPendingStationId(null);
   };
 
@@ -129,7 +127,11 @@ function GameMap({
     const station = getStation(pendingStationId);
     const transports = getStationTransports(pendingStationId);
 
-    if (!station || transports.length <= 1) {
+    if (!station || transports.length === 0) {
+      return null;
+    }
+
+    if (transports.length <= 1 && !canUseBlackTicket) {
       return null;
     }
 
@@ -262,7 +264,7 @@ function GameMap({
           const transports = getStationTransports(station.id);
 
           const isPossibleDestination = transports.length > 0;
-          const hasTransportChoice = transports.length > 1;
+          const hasTransportChoice = transports.length > 1 || (isPossibleDestination && canUseBlackTicket);
 
           return (
             <button
@@ -317,16 +319,36 @@ function GameMap({
               top: `${pendingStation.y}%`,
             }}
           >
-            {pendingStation.transports.map((transport) => (
-              <button
-                key={transport}
-                type="button"
-                className="transport-picker__option"
-                onClick={() => confirmMove(pendingStation.stationId, transport)}
-              >
-                {getTransportSymbol(transport)}
-              </button>
-            ))}
+            {pendingStation.transports.map((transport) => {
+              const canPayNormal = (activePlayer.tickets[transport] ?? 0) > 0;
+
+              return (
+                <div key={transport} className="transport-picker__group">
+                  {canPayNormal && (
+                    <button
+                      type="button"
+                      className="transport-picker__option"
+                      title={`Payer avec un ticket ${transport}`}
+                      onClick={() => confirmMove(pendingStation.stationId, transport, transport)}
+                    >
+                      {getTransportSymbol(transport)}
+                    </button>
+                  )}
+
+                  {canUseBlackTicket && (
+                    <button
+                      type="button"
+                      className="transport-picker__option transport-picker__option--black"
+                      title={`Payer avec un ticket noir (cache le transport ${transport} aux détectives)`}
+                      onClick={() => confirmMove(pendingStation.stationId, transport, "black")}
+                    >
+                      {getTransportSymbol(transport)}
+                      <span className="transport-picker__black-mark">❓</span>
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
