@@ -60,6 +60,18 @@
   color: #fff;
 }
 
+.start-screen__cta--resume {
+  margin-bottom: 0.75rem;
+
+  background: #333;
+  color: #fff;
+}
+
+.start-screen__cta--resume:hover {
+  background: #000;
+  border-color: #000;
+}
+
 .start-screen__secondary {
   margin-top: 1.5rem;
 
