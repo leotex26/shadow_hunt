@@ -13,6 +13,7 @@ import { maps } from "./game/maps";
 import { createInitialPlayers } from "./game/players";
 import { getPossibleMoves, movePlayer } from "./game/engine/movement";
 import type { TicketPayment } from "./game/engine/movement";
+import { saveGame, loadGame, clearSavedGame } from "./game/persistence";
 
 import type { AppScreen, GameConfig } from "./game/types/flow";
 import type { Player } from "./game/types/player";
@@ -220,6 +221,8 @@ function App() {
   };
 
   const resetGame = () => {
+    clearSavedGame();
+
     setGamePlayers(createInitialPlayers(placeholderMap));
     setActivePlayerIndex(0);
     setTurnNumber(1);
@@ -229,6 +232,26 @@ function App() {
     setWinner(null);
     setConfig(null);
     setScreen("start");
+  };
+
+  // Reprend la partie enregistrée dans localStorage (si elle existe —
+  // voir le bouton "Reprendre la partie" sur l'écran d'accueil).
+  const resumeGame = () => {
+    const saved = loadGame();
+
+    if (!saved) {
+      return;
+    }
+
+    setConfig(saved.config);
+    setGamePlayers(saved.gamePlayers);
+    setActivePlayerIndex(saved.activePlayerIndex);
+    setTurnNumber(saved.turnNumber);
+    setMisterXLastKnownPosition(saved.misterXLastKnownPosition);
+    setMisterXLastRevealTurn(saved.misterXLastRevealTurn);
+    setMisterXMoveHistory(saved.misterXMoveHistory);
+    setWinner(saved.winner);
+    setScreen("game");
   };
 
   // Utilisé uniquement par le bouton "Finir le tour" : refuse de passer
@@ -291,8 +314,49 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, config, activePlayerIndex, isHumanTurn, map, winner]);
 
+  // Sauvegarde automatique de la partie en cours, à chaque changement
+  // significatif — et nettoyage dès que la partie est terminée (rien à
+  // reprendre une fois qu'il y a un vainqueur).
+  useEffect(() => {
+    if (screen !== "game" || !config) {
+      return;
+    }
+
+    if (winner) {
+      clearSavedGame();
+      return;
+    }
+
+    saveGame({
+      config,
+      gamePlayers,
+      activePlayerIndex,
+      turnNumber,
+      misterXLastKnownPosition,
+      misterXLastRevealTurn,
+      misterXMoveHistory,
+      winner,
+    });
+  }, [
+    screen,
+    config,
+    gamePlayers,
+    activePlayerIndex,
+    turnNumber,
+    misterXLastKnownPosition,
+    misterXLastRevealTurn,
+    misterXMoveHistory,
+    winner,
+  ]);
+
   if (screen === "start") {
-    return <StartScreen onStart={() => setScreen("setup")} />;
+    return (
+      <StartScreen
+        onStart={() => setScreen("setup")}
+        hasSavedGame={loadGame() !== null}
+        onResume={resumeGame}
+      />
+    );
   }
 
   if (screen === "setup") {
