@@ -40,11 +40,12 @@ export function getPossibleMoves(
         ? connection.to
         : connection.from;
 
-    // On garde uniquement les transports
-    // pour lesquels le joueur possède un ticket.
+    // Un trajet reste possible dès que le joueur peut le payer soit avec
+    // le ticket du transport concerné, soit avec un ticket noir (qui
+    // remplace n'importe quel transport — seul Mister X en possède).
     const availableTransports =
       connection.transports.filter(
-        (transport) => player.tickets[transport] > 0
+        (transport) => player.tickets[transport] > 0 || (player.tickets.black ?? 0) > 0
       );
 
     // Aucun transport utilisable.
@@ -65,15 +66,21 @@ export function getPossibleMoves(
   );
 }
 
+// Un déplacement se paie soit avec le ticket du transport emprunté, soit
+// avec un ticket noir (qui masque aux détectives lequel a été utilisé).
+export type TicketPayment = TransportType | "black";
+
 export function movePlayer(
   player: Player,
   stationId: number,
-  transport: TransportType
+  payment: TicketPayment
 ): Player {
+  const remainingTickets = player.tickets[payment] ?? 0;
+
   // Sécurité :
   // impossible de déplacer le joueur
   // s'il n'a plus de ticket.
-  if (player.tickets[transport] <= 0) {
+  if (remainingTickets <= 0) {
     return player;
   }
 
@@ -85,8 +92,7 @@ export function movePlayer(
     tickets: {
       ...player.tickets,
 
-      [transport]:
-        player.tickets[transport] - 1,
+      [payment]: remainingTickets - 1,
     },
   };
 }
