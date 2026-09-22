@@ -92,6 +92,16 @@
   cursor: not-allowed;
 }
 
+.start-screen__link:not(:disabled) {
+  color: #555;
+  cursor: pointer;
+}
+
+.start-screen__link:not(:disabled):hover {
+  color: #000;
+  text-decoration: underline;
+}
+
 .start-screen__dot {
   color: #ccc;
 }
