@@ -1,4 +1,4 @@
-import { maps } from "../../game/maps";
+import { maps } from "../../../game/maps";
 import "./Rules.css";
 
 interface RulesProps {
