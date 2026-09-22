@@ -1,6 +1,8 @@
 import "./Sidebar.css";
 
 import type { Player, PlayerRole } from "../../game/types/player";
+import type { MisterXMoveRecord } from "../../game/types/history";
+import { getTransportSymbol } from "../../game/ui/transportSymbols";
 
 interface SidebarProps {
   players: Player[];
@@ -13,6 +15,9 @@ interface SidebarProps {
   // les révélations de la partie ont déjà eu lieu).
   misterXLastRevealTurn: number | null;
   nextMisterXRevealTurn: number | null;
+  // Historique des transports utilisés par Mister X (❓ quand il a payé
+  // avec un ticket noir pour se cacher).
+  misterXMoveHistory: MisterXMoveRecord[];
 }
 
 function Sidebar({
@@ -21,6 +26,7 @@ function Sidebar({
   viewerRole,
   misterXLastRevealTurn,
   nextMisterXRevealTurn,
+  misterXMoveHistory,
 }: SidebarProps) {
   const activePlayer = players.find((player) => player.id === activePlayerId);
   const canSeeActivePlayerTickets = activePlayer?.role === viewerRole;
@@ -66,6 +72,27 @@ function Sidebar({
               ? `Prochaine révélation : tour ${nextMisterXRevealTurn}.`
               : "Aucune révélation supplémentaire prévue."}
           </p>
+
+          <h3>Historique des trajets</h3>
+
+          {misterXMoveHistory.length === 0 ? (
+            <p>Aucun déplacement enregistré pour l'instant.</p>
+          ) : (
+            <ul className="mister-x-history">
+              {misterXMoveHistory.map((entry, index) => (
+                <li key={index}>
+                  <span>Tour {entry.turn}</span>
+
+                  <span
+                    className={`mister-x-history__transport ${entry.concealed ? "mister-x-history__transport--concealed" : ""}`}
+                    title={entry.concealed ? "Ticket noir : transport caché" : entry.transport}
+                  >
+                    {entry.concealed ? "❓" : getTransportSymbol(entry.transport)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
 
