@@ -12,10 +12,12 @@ import GameFooter from "./components/GameFooter/GameFooter";
 import { maps } from "./game/maps";
 import { createInitialPlayers } from "./game/players";
 import { getPossibleMoves, movePlayer } from "./game/engine/movement";
+import type { TicketPayment } from "./game/engine/movement";
 
 import type { AppScreen, GameConfig } from "./game/types/flow";
 import type { Player } from "./game/types/player";
 import type { TransportType } from "./game/types/map";
+import type { MisterXMoveRecord } from "./game/types/history";
 
 // Délai avant de passer automatiquement le tour du camp non joué par
 // l'humain. Purement cosmétique (le temps de voir "à Mister X de jouer")
@@ -46,6 +48,11 @@ function App() {
   // suivante (donc `null` seulement avant la toute première révélation).
   const [misterXLastKnownPosition, setMisterXLastKnownPosition] = useState<number | null>(null);
   const [misterXLastRevealTurn, setMisterXLastRevealTurn] = useState<number | null>(null);
+
+  // Historique des transports utilisés par Mister X, visible par les
+  // détectives : un ticket noir masque le transport réel ("❓" côté
+  // affichage) au lieu de le révéler.
+  const [misterXMoveHistory, setMisterXMoveHistory] = useState<MisterXMoveRecord[]>([]);
 
   // Défini dès qu'un détective se pose sur la case de Mister X, que
   // Mister X survit jusqu'au dernier tour, ou que tous les détectives
@@ -85,7 +92,7 @@ function App() {
   // pas cette contrainte).
   const mustMove = isHumanTurn && activePlayer.role === "detective" && possibleMoves.length > 0;
 
-  const handleMove = (stationId: number, transport: TransportType) => {
+  const handleMove = (stationId: number, transport: TransportType, payment: TicketPayment) => {
     if (!map || !isHumanTurn || winner) {
       return;
     }
@@ -99,7 +106,18 @@ function App() {
       return;
     }
 
-    const captured = applyMove(activePlayer, stationId, transport);
+    // Le paiement doit être réellement possible : le ticket normal du
+    // transport choisi, ou un ticket noir (Mister X uniquement).
+    const canPay =
+      payment === "black"
+        ? (activePlayer.tickets.black ?? 0) > 0
+        : (activePlayer.tickets[payment] ?? 0) > 0;
+
+    if (!canPay) {
+      return;
+    }
+
+    const captured = applyMove(activePlayer, stationId, transport, payment);
 
     if (!captured) {
       handleEndTurn();
@@ -107,24 +125,42 @@ function App() {
   };
 
   // Applique un déplacement (choix humain ou coup automatique) : met à
-  // jour la position/les tickets du joueur avec le transport précis
-  // choisi, déclenche la révélation de Mister X si c'est le tour qu'il
-  // faut, et détecte une capture.
+  // jour la position/les tickets du joueur avec le paiement précis
+  // choisi (ticket du transport, ou ticket noir), journalise le
+  // déplacement de Mister X pour l'historique visible des détectives,
+  // déclenche la révélation de sa position si c'est le tour qu'il faut,
+  // et détecte une capture.
   // Retourne `true` si ce déplacement vient de mettre fin à la partie.
-  const applyMove = (player: Player, stationId: number, transport: TransportType): boolean => {
+  const applyMove = (
+    player: Player,
+    stationId: number,
+    transport: TransportType,
+    payment: TicketPayment,
+  ): boolean => {
     const nextPlayers = gamePlayers.map((currentPlayer) =>
       currentPlayer.id === player.id
-        ? movePlayer(currentPlayer, stationId, transport)
+        ? movePlayer(currentPlayer, stationId, payment)
         : currentPlayer,
     );
 
     setGamePlayers(nextPlayers);
 
-    // Révélation périodique de Mister X : sa nouvelle position reste
-    // affichée aux détectives jusqu'à la prochaine révélation.
-    if (player.role === "mister-x" && revealTurns.includes(turnNumber)) {
-      setMisterXLastKnownPosition(stationId);
-      setMisterXLastRevealTurn(turnNumber);
+    if (player.role === "mister-x") {
+      // Historique visible des détectives : le transport réel, sauf
+      // paiement en ticket noir, qui le masque.
+      setMisterXMoveHistory((history) => [
+        ...history,
+        { turn: turnNumber, transport, concealed: payment === "black" },
+      ]);
+
+      // Révélation périodique de Mister X : sa nouvelle position reste
+      // affichée aux détectives jusqu'à la prochaine révélation. Elle a
+      // lieu même si le déplacement a été payé en ticket noir — seul le
+      // *transport* reste caché, pas la position aux tours de révélation.
+      if (revealTurns.includes(turnNumber)) {
+        setMisterXLastKnownPosition(stationId);
+        setMisterXLastRevealTurn(turnNumber);
+      }
     }
 
     // Capture : un détective (celui qui vient de bouger, ou Mister X qui
@@ -189,6 +225,7 @@ function App() {
     setTurnNumber(1);
     setMisterXLastKnownPosition(null);
     setMisterXLastRevealTurn(null);
+    setMisterXMoveHistory([]);
     setWinner(null);
     setConfig(null);
     setScreen("start");
@@ -227,7 +264,22 @@ function App() {
 
       if (options.length > 0) {
         const choice = options[Math.floor(Math.random() * options.length)];
-        captured = applyMove(activePlayer, choice.stationId, choice.transport);
+
+        // Choix du paiement : s'il n'a plus le ticket normal, le ticket
+        // noir est la seule option (c'est justement pour ça qu'il était
+        // dans la liste). S'il a les deux, l'IA en garde un peu sous le
+        // coude et ne le joue qu'une fois sur trois environ.
+        const canPayNormal = (activePlayer.tickets[choice.transport] ?? 0) > 0;
+        const canPayBlack = (activePlayer.tickets.black ?? 0) > 0;
+
+        const payment: TicketPayment =
+          !canPayNormal && canPayBlack
+            ? "black"
+            : canPayNormal && canPayBlack && Math.random() < 0.3
+              ? "black"
+              : choice.transport;
+
+        captured = applyMove(activePlayer, choice.stationId, choice.transport, payment);
       }
 
       if (!captured) {
@@ -309,6 +361,7 @@ function App() {
           viewerRole={config!.userRole}
           misterXLastRevealTurn={misterXLastRevealTurn}
           nextMisterXRevealTurn={nextMisterXRevealTurn}
+          misterXMoveHistory={misterXMoveHistory}
         />
       </main>
 
