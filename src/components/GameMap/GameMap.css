@@ -224,7 +224,7 @@
   transform: translate(-50%, calc(-100% - 40px));
 
   display: flex;
-  gap: 4px;
+  gap: 8px;
 
   padding: 5px;
 
@@ -236,7 +236,14 @@
   z-index: 4;
 }
 
+.transport-picker__group {
+  display: flex;
+  gap: 4px;
+}
+
 .transport-picker__option {
+  position: relative;
+
   width: 32px;
   height: 32px;
 
@@ -255,4 +262,32 @@
 .transport-picker__option:hover {
   background: #333;
   border-color: #333;
+}
+
+.transport-picker__option--black {
+  background: #1b1b1b;
+  border-color: #1b1b1b;
+}
+
+.transport-picker__option--black:hover {
+  background: #000;
+}
+
+.transport-picker__black-mark {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+
+  width: 14px;
+  height: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #fff;
+
+  font-size: 0.55rem;
+  line-height: 1;
 }
