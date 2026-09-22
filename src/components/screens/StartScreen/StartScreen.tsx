@@ -2,11 +2,12 @@ import "./StartScreen.css";
 
 interface StartScreenProps {
   onStart: () => void;
+  onShowRules: () => void;
   hasSavedGame: boolean;
   onResume: () => void;
 }
 
-function StartScreen({ onStart, hasSavedGame, onResume }: StartScreenProps) {
+function StartScreen({ onStart, onShowRules, hasSavedGame, onResume }: StartScreenProps) {
   return (
     <div className="start-screen">
       <div className="start-screen__content">
@@ -39,7 +40,7 @@ function StartScreen({ onStart, hasSavedGame, onResume }: StartScreenProps) {
         </button>
 
         <div className="start-screen__secondary">
-          <button type="button" className="start-screen__link" disabled>
+          <button type="button" className="start-screen__link" onClick={onShowRules}>
             Règles
           </button>
           <span className="start-screen__dot">·</span>
