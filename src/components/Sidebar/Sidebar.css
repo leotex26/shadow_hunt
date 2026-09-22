@@ -45,3 +45,46 @@
 
   padding: 0.5rem 0;
 }
+
+.sidebar-section h3 {
+  margin: 1rem 0 0.5rem;
+
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.mister-x-history {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.mister-x-history li {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  padding: 0.3rem 0.5rem;
+
+  border: 1px solid #eee;
+  border-radius: 6px;
+
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.mister-x-history__transport {
+  font-size: 1rem;
+}
+
+.mister-x-history__transport--concealed {
+  opacity: 0.7;
+}
