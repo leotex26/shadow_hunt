@@ -46,6 +46,7 @@ export interface MapBalance {
 export interface GameMap {
   id: string;
   name: string;
+  description: string;
 
   stations: Station[];
   connections: Connection[];
