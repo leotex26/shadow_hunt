@@ -3,6 +3,7 @@ import type { GameMap } from "../types/map";
 export const bellevue: GameMap = {
   id: "bellevue",
   name: "Bellevue",
+  description: "Petite carte de test, idéale pour apprendre les règles.",
 
   stations: [
     {
