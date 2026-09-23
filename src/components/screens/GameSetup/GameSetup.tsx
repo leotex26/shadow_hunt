@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import type { PlayerRole } from "../../../game/types/player";
 import type { MapId, GameConfig } from "../../../game/types/flow";
+import type { GameMap } from "../../../game/types/map";
+import { maps } from "../../../game/maps";
 
 import "./GameSetup.css";
 
@@ -10,15 +12,16 @@ interface GameSetupProps {
   onBack: () => void;
 }
 
-// Registre des cartes disponibles pour l'écran de sélection.
-// Ajouter une carte = ajouter un fichier dans game/maps/ + une entrée ici.
-const AVAILABLE_MAPS: { id: MapId; name: string; description: string }[] = [
-  {
-    id: "bellevue",
-    name: "Bellevue",
-    description: "Petite carte de test, idéale pour apprendre les règles.",
-  },
-];
+// Cartes disponibles pour l'écran de sélection, dérivées directement du
+// registre des cartes (game/maps/index.ts) plutôt que dupliquées ici —
+// ajouter une carte au registre suffit à la faire apparaître. On repart
+// des clés de `maps` (déjà typées MapId) plutôt que du champ `id` de
+// chaque carte, qui lui n'est qu'un `string` générique.
+const AVAILABLE_MAPS = (Object.entries(maps) as [MapId, GameMap][]).map(([id, map]) => ({
+  id,
+  name: map.name,
+  description: map.description,
+}));
 
 const ROLES: { id: PlayerRole; label: string; pitch: string }[] = [
   {
