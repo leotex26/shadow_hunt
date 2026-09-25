@@ -14,6 +14,7 @@ import { maps } from "./game/maps";
 import { createInitialPlayers } from "./game/players";
 import { getPossibleMoves, movePlayer } from "./game/engine/movement";
 import type { TicketPayment } from "./game/engine/movement";
+import { chooseAiMove } from "./game/engine/ai";
 import { saveGame, loadGame, clearSavedGame } from "./game/persistence";
 
 import type { AppScreen, GameConfig } from "./game/types/flow";
@@ -265,46 +266,21 @@ function App() {
     handleEndTurn();
   };
 
-  // Fait jouer automatiquement le camp que l'humain ne contrôle pas :
-  // un déplacement aléatoire parmi ceux possibles (ou aucun s'il n'y en
-  // a pas), puis passage du tour. C'est ici que branchera une vraie IA
-  // plus tard — seul le choix du coup changera, pas la mécanique autour.
+  // Fait jouer automatiquement le camp que l'humain ne contrôle pas, en
+  // s'appuyant sur l'heuristique de game/engine/ai.ts (fuite pour
+  // Mister X, approche de la dernière position connue pour les
+  // détectives) plutôt que sur un choix uniformément aléatoire.
   useEffect(() => {
     if (screen !== "game" || !config || isHumanTurn || !map || winner) {
       return;
     }
 
     const timer = setTimeout(() => {
-      const aiMoves = getPossibleMoves(activePlayer, map);
+      const choice = chooseAiMove(activePlayer, map, gamePlayers, misterXLastKnownPosition);
 
-      // On aplatit en paires (station, transport) pour tirer au sort
-      // uniformément parmi toutes les combinaisons réellement possibles,
-      // plutôt que de toujours prendre le premier transport de la liste.
-      const options = aiMoves.flatMap((move) =>
-        move.transports.map((transport) => ({ stationId: move.stationId, transport })),
-      );
-
-      let captured = false;
-
-      if (options.length > 0) {
-        const choice = options[Math.floor(Math.random() * options.length)];
-
-        // Choix du paiement : s'il n'a plus le ticket normal, le ticket
-        // noir est la seule option (c'est justement pour ça qu'il était
-        // dans la liste). S'il a les deux, l'IA en garde un peu sous le
-        // coude et ne le joue qu'une fois sur trois environ.
-        const canPayNormal = (activePlayer.tickets[choice.transport] ?? 0) > 0;
-        const canPayBlack = (activePlayer.tickets.black ?? 0) > 0;
-
-        const payment: TicketPayment =
-          !canPayNormal && canPayBlack
-            ? "black"
-            : canPayNormal && canPayBlack && Math.random() < 0.3
-              ? "black"
-              : choice.transport;
-
-        captured = applyMove(activePlayer, choice.stationId, choice.transport, payment);
-      }
+      const captured = choice
+        ? applyMove(activePlayer, choice.stationId, choice.transport, choice.payment)
+        : false;
 
       if (!captured) {
         handleEndTurn();
