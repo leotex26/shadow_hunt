@@ -9,7 +9,8 @@
 
   padding: 1rem 2rem;
 
-  border-top: 1px solid #ddd;
+  background: var(--color-fog);
+  border-top: 1px solid var(--color-fog-line);
 }
 
 .turn,
@@ -18,22 +19,34 @@
 
   text-align: center;
 
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  color: var(--color-parchment);
+  border: 1px solid var(--color-fog-line);
+  border-radius: 4px;
 }
 
 .end-turn {
   padding: 1rem;
 
-  border: none;
-  border-radius: 8px;
+  border: 1px solid var(--color-brass);
+  border-radius: 4px;
+
+  background: transparent;
+  color: var(--color-parchment);
+  font-family: var(--font-ui);
+  font-size: 1rem;
 
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
 
-  font-size: 1rem;
+.end-turn:hover:not(:disabled) {
+  background: var(--color-brass);
+  color: var(--color-ink);
 }
 
 .end-turn:disabled {
-  opacity: 0.5;
+  border-color: var(--color-fog-line);
+  color: var(--color-mist);
+  opacity: 0.6;
   cursor: not-allowed;
 }
