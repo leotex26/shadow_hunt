@@ -146,7 +146,10 @@ function GameMap({
         Tour de : <strong>{activePlayer.name}</strong>
       </p>
 
-      <div className="map-board" ref={mapBoardRef}>
+      <div
+        className={`map-board map-board--${activePlayer.role}`}
+        ref={mapBoardRef}
+      >
         {/* =====================
             CONNEXIONS
         ====================== */}

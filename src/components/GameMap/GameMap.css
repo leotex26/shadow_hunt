@@ -17,6 +17,10 @@
 
 .game-map h2 {
   margin: 0 0 0.25rem;
+
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--color-parchment);
 }
 
 /* =========================
@@ -30,11 +34,23 @@
   flex: 1;
   min-height: 0;
 
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background: #fafafa;
+  border: 1px solid var(--color-fog-line);
+  border-radius: 8px;
+  background: var(--color-fog);
 
   overflow: hidden;
+
+  /* Couleur d'accent liée au camp dont c'est le tour — reprise pour
+     surligner les destinations possibles (voir .station-possible). */
+  --turn-accent: var(--color-mist);
+}
+
+.map-board--detective {
+  --turn-accent: var(--color-teal);
+}
+
+.map-board--mister-x {
+  --turn-accent: var(--color-brass);
 }
 
 .connections {
@@ -50,17 +66,17 @@
 }
 
 .connection {
-  stroke: #e2b400;
+  stroke: #e3b23c;
   stroke-width: 2.5;
   stroke-linecap: round;
 }
 
 .connection-bus {
-  stroke: #2e8b57;
+  stroke: #3fae7d;
 }
 
 .connection-metro {
-  stroke: #c0392b;
+  stroke: #d9524a;
   stroke-dasharray: 5 4;
 }
 
@@ -80,9 +96,9 @@
   align-items: center;
   justify-content: center;
 
-  border: 2px solid #999;
+  border: 2px solid var(--color-mist);
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-ink);
 
   font-family: inherit;
   cursor: not-allowed;
@@ -93,7 +109,7 @@
 .station-number {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #555;
+  color: var(--color-parchment);
 }
 
 .station-name {
@@ -102,7 +118,7 @@
   margin-top: 4px;
 
   font-size: 0.65rem;
-  color: #666;
+  color: var(--color-mist);
   white-space: nowrap;
 }
 
@@ -134,11 +150,11 @@
 
   font-size: 1rem;
 
-  background: #fff;
-  border: 2px dashed #a8402c;
+  background: var(--color-fog);
+  border: 2px dashed var(--color-brass);
   border-radius: 50%;
 
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 /* =========================
@@ -148,6 +164,8 @@
 .active-player {
   margin-top: -0.5rem;
   margin-bottom: 1rem;
+
+  color: var(--color-mist);
 }
 
 /* =========================
@@ -156,11 +174,11 @@
 
 .station-possible {
   cursor: pointer;
-  border-color: #2e8b57;
+  border-color: var(--turn-accent);
 
   box-shadow:
-    0 0 0 5px rgba(46, 139, 87, 0.2),
-    0 0 15px rgba(46, 139, 87, 0.4);
+    0 0 0 5px color-mix(in srgb, var(--turn-accent) 25%, transparent),
+    0 0 15px color-mix(in srgb, var(--turn-accent) 40%, transparent);
 
   animation: possible-pulse 1.5s infinite;
 }
@@ -174,17 +192,17 @@
 @keyframes possible-pulse {
   0% {
     box-shadow:
-      0 0 0 3px rgba(46, 139, 87, 0.2);
+      0 0 0 3px color-mix(in srgb, var(--turn-accent) 25%, transparent);
   }
 
   50% {
     box-shadow:
-      0 0 0 8px rgba(46, 139, 87, 0.1);
+      0 0 0 8px color-mix(in srgb, var(--turn-accent) 12%, transparent);
   }
 
   100% {
     box-shadow:
-      0 0 0 3px rgba(46, 139, 87, 0.2);
+      0 0 0 3px color-mix(in srgb, var(--turn-accent) 25%, transparent);
   }
 }
 
@@ -204,7 +222,8 @@
 
   border-radius: 6px;
 
-  background: white;
+  background: var(--color-ink);
+  border: 1px solid var(--color-fog-line);
 
   font-size: 1rem;
 
@@ -212,7 +231,7 @@
 }
 
 .possible-transports--choice {
-  border: 1px dashed #999;
+  border: 1px dashed var(--color-mist);
 }
 
 /* =========================
@@ -228,10 +247,10 @@
 
   padding: 5px;
 
-  background: #fff;
-  border: 1px solid #333;
+  background: var(--color-fog);
+  border: 1px solid var(--color-fog-line);
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 
   z-index: 4;
 }
@@ -251,26 +270,26 @@
   align-items: center;
   justify-content: center;
 
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-fog-line);
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-ink);
 
   font-size: 1rem;
   cursor: pointer;
 }
 
 .transport-picker__option:hover {
-  background: #333;
-  border-color: #333;
+  background: var(--turn-accent);
+  border-color: var(--turn-accent);
 }
 
 .transport-picker__option--black {
-  background: #1b1b1b;
-  border-color: #1b1b1b;
+  background: #0a0d11;
+  border-color: var(--color-brass);
 }
 
 .transport-picker__option--black:hover {
-  background: #000;
+  background: var(--color-brass);
 }
 
 .transport-picker__black-mark {
@@ -286,7 +305,8 @@
   justify-content: center;
 
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-brass);
+  color: var(--color-ink);
 
   font-size: 0.55rem;
   line-height: 1;
