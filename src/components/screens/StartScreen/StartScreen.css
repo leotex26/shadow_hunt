@@ -5,6 +5,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  background: radial-gradient(
+    120% 90% at 50% 20%,
+    var(--color-fog) 0%,
+    var(--color-ink) 65%
+  );
 }
 
 .start-screen__content {
@@ -20,25 +26,29 @@
 .start-screen__kicker {
   margin: 0 0 0.5rem;
 
-  color: #777;
+  color: var(--color-mist);
   font-size: 0.9rem;
 }
 
 .start-screen__title {
   margin: 0;
 
-  font-size: 3.5rem;
-  letter-spacing: -0.02em;
+  color: var(--color-parchment);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 3.75rem;
+  letter-spacing: -0.01em;
 }
 
 .start-screen__title-accent {
-  color: #444;
+  font-style: italic;
+  font-weight: 400;
 }
 
 .start-screen__tagline {
   margin: 1rem 0 2.5rem;
 
-  color: #666;
+  color: var(--color-mist);
   font-size: 1.05rem;
   line-height: 1.5;
 }
@@ -46,30 +56,33 @@
 .start-screen__cta {
   padding: 0.85rem 2.25rem;
 
-  border: 1px solid #333;
-  border-radius: 8px;
+  border: 1px solid var(--color-brass);
+  border-radius: 4px;
 
-  background: #fff;
+  background: transparent;
+  color: var(--color-parchment);
+  font-family: var(--font-ui);
   font-size: 1rem;
 
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .start-screen__cta:hover {
-  background: #333;
-  color: #fff;
+  background: var(--color-brass);
+  color: var(--color-ink);
 }
 
 .start-screen__cta--resume {
   margin-bottom: 0.75rem;
 
-  background: #333;
-  color: #fff;
+  background: var(--color-brass);
+  color: var(--color-ink);
 }
 
 .start-screen__cta--resume:hover {
-  background: #000;
-  border-color: #000;
+  background: #cf9d54;
+  border-color: #cf9d54;
 }
 
 .start-screen__secondary {
@@ -86,22 +99,25 @@
   border: none;
   background: none;
 
-  color: #999;
+  color: var(--color-mist);
+  font-family: var(--font-ui);
   font-size: 0.85rem;
+  opacity: 0.6;
 
   cursor: not-allowed;
 }
 
 .start-screen__link:not(:disabled) {
-  color: #555;
+  color: var(--color-mist);
+  opacity: 1;
   cursor: pointer;
 }
 
 .start-screen__link:not(:disabled):hover {
-  color: #000;
+  color: var(--color-parchment);
   text-decoration: underline;
 }
 
 .start-screen__dot {
-  color: #ccc;
+  color: var(--color-fog-line);
 }
