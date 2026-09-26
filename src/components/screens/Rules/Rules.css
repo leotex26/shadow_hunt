@@ -5,6 +5,10 @@
   display: flex;
   justify-content: center;
 
+  background: var(--color-ink);
+  color: var(--color-parchment);
+  font-family: var(--font-ui);
+
   padding: 2.5rem 1.5rem 4rem;
 }
 
@@ -20,19 +24,22 @@
   border: none;
   background: none;
 
-  color: #777;
+  color: var(--color-mist);
+  font-family: var(--font-ui);
   font-size: 0.9rem;
 
   cursor: pointer;
 }
 
 .rules__back:hover {
-  color: #333;
+  color: var(--color-parchment);
 }
 
 .rules h1 {
   margin: 0 0 1.5rem;
 
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: 2rem;
 }
 
@@ -43,13 +50,16 @@
 .rules__section h2 {
   margin: 0 0 0.5rem;
 
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.15rem;
+  color: var(--color-parchment);
 }
 
 .rules__section p {
   margin: 0 0 0.75rem;
 
-  color: #444;
+  color: var(--color-mist);
   line-height: 1.55;
 }
 
@@ -57,7 +67,7 @@
   margin: 0;
   padding-left: 1.2rem;
 
-  color: #444;
+  color: var(--color-mist);
   line-height: 1.55;
 }
 
@@ -65,11 +75,17 @@
   margin-bottom: 0.4rem;
 }
 
+.rules__section strong {
+  color: var(--color-parchment);
+}
+
 .rules__map-balance {
   padding: 0.9rem 1.1rem;
 
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: var(--color-fog);
+  border: 1px solid var(--color-fog-line);
+  border-left: 3px solid var(--color-mist);
+  border-radius: 4px;
 
   margin-bottom: 0.75rem;
 }
@@ -77,7 +93,9 @@
 .rules__map-balance h3 {
   margin: 0 0 0.5rem;
 
+  font-family: var(--font-display);
   font-size: 0.95rem;
+  color: var(--color-parchment);
 }
 
 .rules__map-balance ul {
