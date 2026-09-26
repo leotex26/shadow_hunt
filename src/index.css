@@ -12,5 +12,10 @@ body,
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+
+  background: #12161c;
+  color: #e8e3d6;
+
+  color-scheme: dark;
 }

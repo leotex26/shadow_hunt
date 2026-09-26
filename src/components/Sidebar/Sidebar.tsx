@@ -58,7 +58,7 @@ function Sidebar({
       </section>
 
       {viewerRole !== "mister-x" && (
-        <section className="sidebar-section">
+        <section className="sidebar-section sidebar-section--misterx">
           <h2>Mister X</h2>
 
           <p>
@@ -97,7 +97,9 @@ function Sidebar({
       )}
 
       {activePlayer && canSeeActivePlayerTickets && (
-        <section className="sidebar-section">
+        <section
+          className={`sidebar-section ${activePlayer.role === "mister-x" ? "sidebar-section--misterx" : "sidebar-section--detective"}`}
+        >
           <h2>Transports de {activePlayer.name}</h2>
 
           <div className="transport">
