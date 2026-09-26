@@ -83,6 +83,7 @@ function GameSetup({ onConfirm, onBack }: GameSetupProps) {
               type="button"
               className={`
                 game-setup__role
+                game-setup__role--${role.id}
                 ${userRole === role.id ? "game-setup__role--selected" : ""}
               `}
               onClick={() => setUserRole(role.id)}

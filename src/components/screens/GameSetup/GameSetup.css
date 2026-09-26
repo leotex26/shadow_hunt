@@ -6,6 +6,10 @@
   flex-direction: column;
   align-items: center;
 
+  background: var(--color-ink);
+  color: var(--color-parchment);
+  font-family: var(--font-ui);
+
   padding: 2.5rem 1.5rem 4rem;
 }
 
@@ -23,6 +27,8 @@
 .game-setup__header h1 {
   margin: 0;
 
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: 1.9rem;
 }
 
@@ -32,14 +38,15 @@
   border: none;
   background: none;
 
-  color: #777;
+  color: var(--color-mist);
+  font-family: var(--font-ui);
   font-size: 0.9rem;
 
   cursor: pointer;
 }
 
 .game-setup__back:hover {
-  color: #333;
+  color: var(--color-parchment);
 }
 
 .game-setup__section {
@@ -52,10 +59,9 @@
 .game-setup__section h2 {
   margin: 0 0 0.85rem;
 
-  color: #777;
+  color: var(--color-mist);
   font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: none;
+  font-weight: 500;
 }
 
 .game-setup__maps {
@@ -69,9 +75,9 @@
 
   padding: 0.9rem 1.1rem;
 
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-fog-line);
+  border-radius: 4px;
+  background: var(--color-fog);
 
   display: flex;
   flex-direction: column;
@@ -81,15 +87,16 @@
 }
 
 .game-setup__map--selected {
-  border-color: #333;
+  border-color: var(--color-teal);
 }
 
 .game-setup__map-name {
   font-weight: 600;
+  color: var(--color-parchment);
 }
 
 .game-setup__map-desc {
-  color: #777;
+  color: var(--color-mist);
   font-size: 0.85rem;
 }
 
@@ -110,9 +117,10 @@
 
   padding: 1.1rem;
 
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-fog-line);
+  border-top: 3px solid var(--color-fog-line);
+  border-radius: 4px;
+  background: var(--color-fog);
 
   display: flex;
   flex-direction: column;
@@ -121,18 +129,36 @@
   cursor: pointer;
 }
 
+.game-setup__role--detective {
+  border-top-color: var(--color-teal);
+}
+
+.game-setup__role--mister-x {
+  border-top-color: var(--color-brass);
+}
+
 .game-setup__role--selected {
-  border-color: #333;
+  border-color: var(--color-parchment);
   border-width: 2px;
 }
 
+.game-setup__role--detective.game-setup__role--selected {
+  border-top-color: var(--color-teal);
+}
+
+.game-setup__role--mister-x.game-setup__role--selected {
+  border-top-color: var(--color-brass);
+}
+
 .game-setup__role-label {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--color-parchment);
 }
 
 .game-setup__role-pitch {
-  color: #777;
+  color: var(--color-mist);
   font-size: 0.85rem;
   line-height: 1.4;
 }
@@ -140,18 +166,21 @@
 .game-setup__confirm {
   padding: 0.85rem 2.5rem;
 
-  border: 1px solid #333;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-brass);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-parchment);
+  font-family: var(--font-ui);
 
   font-size: 1rem;
 
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 
 .game-setup__confirm:hover:not(:disabled) {
-  background: #333;
-  color: #fff;
+  background: var(--color-brass);
+  color: var(--color-ink);
 }
 
 .game-setup__confirm:disabled {
