@@ -5,6 +5,8 @@ interface RulesProps {
   onBack: () => void;
 }
 
+
+
 function Rules({ onBack }: RulesProps) {
   const allMaps = Object.values(maps);
 
