@@ -5,8 +5,8 @@ import type { GameMap as GameMapData, Station, TransportType } from "../../game/
 import type { Player, PlayerRole } from "../../game/types/player";
 import type { PossibleMove, TicketPayment } from "../../game/engine/movement";
 import { getTransportSymbol } from "../../game/ui/transportSymbols";
-import { getMapBackground } from "./backgrounds/mapBackgrounds";
-import { mapBackgroundImages } from "./backgrounds/mapBackgroundImages";
+import { getMapBackground } from "../backgrounds/mapBackgrounds";
+import { mapBackgroundImages } from "../backgrounds/mapBackgroundImages";
 
 // Écart, en pixels, entre deux lignes de transport parallèles sur un
 // même trajet (ex. taxi + bus + métro entre les deux mêmes stations).
