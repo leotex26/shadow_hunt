@@ -66,10 +66,10 @@
 
 .map-background-image {
   position: absolute;
-  inset: 0;
+  inset: 20px; 
 
   background-size: cover;
-  background-position: center;
+  background-position: 68% center;
 
   /* Assombri et désaturé : l'image reste une ambiance de fond, pas un
      élément à lire — les lignes et stations du jeu doivent rester le
