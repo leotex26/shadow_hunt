@@ -64,6 +64,36 @@
   z-index: 0;
 }
 
+.map-background-image {
+  position: absolute;
+  inset: 0;
+
+  background-size: cover;
+  background-position: center;
+
+  /* Assombri et désaturé : l'image reste une ambiance de fond, pas un
+     élément à lire — les lignes et stations du jeu doivent rester le
+     premier plan visuel. */
+  opacity: 0.55;
+  filter: saturate(0.85) brightness(0.85);
+
+  pointer-events: none;
+  z-index: 0;
+}
+
+.map-background-image::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    120% 100% at 50% 50%,
+    transparent 40%,
+    var(--color-ink) 100%
+  );
+}
+
 .connections {
   position: absolute;
   inset: 0;
