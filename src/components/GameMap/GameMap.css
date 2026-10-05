@@ -18,6 +18,7 @@
 
 .coco{
   background-color: red;
+  display : flex
 }
 
 .game-map h2 {
