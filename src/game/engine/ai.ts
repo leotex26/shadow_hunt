@@ -18,7 +18,6 @@ export interface AiChoice {
 const TOP_CHOICES_POOL = 3;
 
 
-const toto = 1;
 
 // Probabilité de payer en ticket noir quand Mister X a le choix (c'est-
 // à-dire quand il a encore aussi le ticket normal correspondant).
