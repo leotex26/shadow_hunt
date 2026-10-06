@@ -67,10 +67,13 @@
 
 .map-background-image {
   position: absolute;
-  inset: 20px; 
+  inset: 20px;
 
-  background-size: cover;
-  background-position: 68% center;
+  /* 100% 100% (et non "cover") : l'image s'étire exactement comme les
+     stations et les lignes, qui sont positionnées en % du plateau.
+     "cover" préserve le ratio d'origine de l'image et donc se désynchronise
+     des tracés dès que la fenêtre change de proportions. */
+  background-size: 100% 100%;
 
   /* Assombri et désaturé : l'image reste une ambiance de fond, pas un
      élément à lire — les lignes et stations du jeu doivent rester le
