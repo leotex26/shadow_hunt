@@ -165,7 +165,7 @@ function GameMap({
           />
         ) : (
           <svg className="map-background" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {getMapBackground(map.id)}
+            {getMapBackground(map)}
           </svg>
         )}
 
