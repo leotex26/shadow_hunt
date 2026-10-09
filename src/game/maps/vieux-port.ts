@@ -52,6 +52,15 @@ export const vieuxPort: GameMap = {
     { from: 13, to: 18, transports: ["taxi"] },
     { from: 15, to: 20, transports: ["taxi"] },
 
+    // Ces trois trajets desservaient autrefois le métro en plus du taxi.
+    // Les stations 7, 9 et 11 ne sont plus des arrêts de métro (voir plus
+    // bas) : un trajet métro qui passe géographiquement par elles ne s'y
+    // arrête pas, donc ces liaisons courtes restent du taxi seul.
+    { from: 1, to: 7, transports: ["taxi"] },
+    { from: 4, to: 9, transports: ["taxi"] },
+    { from: 6, to: 11, transports: ["taxi"] },
+    { from: 9, to: 14, transports: ["taxi"] },
+
     // =====================
     // TAXI + BUS
     // =====================
@@ -64,22 +73,40 @@ export const vieuxPort: GameMap = {
     { from: 19, to: 20, transports: ["taxi", "bus"] },
     { from: 10, to: 15, transports: ["taxi", "bus"] },
 
+    // 9 et 10 ne sont plus desservis par le métro (voir plus bas), mais
+    // restent un carrefour taxi + bus bien connecté.
+    { from: 9, to: 10, transports: ["taxi", "bus"] },
+
     // =====================
     // TAXI + MÉTRO
+    // (liaisons courtes, entre deux arrêts de métro directement voisins —
+    // pas de station entre les deux à sauter)
     // =====================
-    { from: 1, to: 7, transports: ["taxi", "metro"] },
-    { from: 4, to: 9, transports: ["taxi", "metro"] },
-    { from: 6, to: 11, transports: ["taxi", "metro"] },
-    { from: 9, to: 14, transports: ["taxi", "metro"] },
     { from: 12, to: 17, transports: ["taxi", "metro"] },
     { from: 14, to: 19, transports: ["taxi", "metro"] },
 
     // =====================
     // TAXI + BUS + MÉTRO
-    // (correspondances principales)
+    // (correspondance principale)
     // =====================
-    { from: 9, to: 10, transports: ["taxi", "bus", "metro"] },
     { from: 14, to: 15, transports: ["taxi", "bus", "metro"] },
+
+    // =====================
+    // MÉTRO SEUL — lignes longue distance
+    // =====================
+    //
+    // Le métro doit donner un vrai avantage tactique : avec UN ticket, il
+    // doit permettre de couvrir une distance qu'aucun autre transport ne
+    // permet en un seul tour, en sautant par-dessus une station qui n'est
+    // pas elle-même un arrêt de métro (1 → 12 saute 7, 4 → 14 saute 9,
+    // 6 → 15 saute 11 — exactement comme sur le plateau officiel, où une
+    // ligne de métro peut passer près d'une station numérotée sans qu'elle
+    // en soit un arrêt). Ce n'est donc pas un simple trajet local comme le
+    // taxi ou le bus : pas de taxi ni de bus sur ces liaisons, seul le
+    // métro va aussi loin d'un coup.
+    { from: 1, to: 12, transports: ["metro"] },
+    { from: 4, to: 14, transports: ["metro"] },
+    { from: 6, to: 15, transports: ["metro"] },
   ],
 
   // Vieux-Port fait presque le double de Bellevue (20 stations contre
