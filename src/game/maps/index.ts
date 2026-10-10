@@ -1,12 +1,14 @@
-import type { GameMap } from "../types/map";
 import type { MapId } from "../types/flow";
+import type { GameMap } from "../types/map";
 
-import { bellevue } from "./bellevue";
 import { vieuxPort } from "./vieux-port";
+import { grandBoulevard } from "./grand-boulevard";
 
-// Ajouter une carte = ajouter son fichier ici (game/maps/london.ts, etc.)
-// et une entrée dans ce registre.
+// L'ordre d'insertion ici pilote l'ordre d'affichage dans l'écran de
+// configuration (GameSetup.tsx fait Object.entries(maps)) : Vieux-Port
+// est donc bien la première carte proposée, Grand Boulevard la seconde
+// (et la plus grande).
 export const maps: Record<MapId, GameMap> = {
-  bellevue,
   "vieux-port": vieuxPort,
+  "grand-boulevard": grandBoulevard,
 };
