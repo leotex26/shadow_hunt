@@ -236,6 +236,23 @@ function App() {
     setScreen("start");
   };
 
+  // Abandon volontaire (bouton "Quitter" du Header) : contrairement à une
+  // victoire/défaite, rien ne force la sortie, donc on confirme avant de
+  // perdre la progression en cours — `resetGame` efface déjà la
+  // sauvegarde et ramène à l'écran d'accueil, donc rien d'autre à faire
+  // une fois confirmé.
+  const handleQuitGame = () => {
+    const confirmed = window.confirm(
+      "Abandonner la partie en cours et revenir au menu ? La progression ne sera pas conservée.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    resetGame();
+  };
+
   // Reprend la partie enregistrée dans localStorage (si elle existe —
   // voir le bouton "Reprendre la partie" sur l'écran d'accueil).
   const resumeGame = () => {
@@ -388,7 +405,7 @@ function App() {
 
   return (
     <div className="game">
-      <Header mapName={map!.name} />
+      <Header mapName={map!.name} onQuit={handleQuitGame} />
 
       <main className="game-content">
         <GameMap
