@@ -98,6 +98,32 @@ function GameMap({
       .flatMap((move) => move.transports);
   };
 
+  // Retourne les transports pour lesquels cette station est un VRAI
+  // arrêt — c'est-à-dire qu'au moins une connexion du plan touche
+  // cette station avec ce transport. Contrairement à
+  // getStationTransports ci-dessus, ceci ne dépend ni du joueur actif,
+  // ni de ses tickets, ni du tour en cours : c'est une propriété
+  // structurelle de la carte elle-même. C'est ce qui permet d'afficher
+  // en permanence, sur chaque station, si elle est un arrêt taxi
+  // (jaune), bus (vert), métro (rouge), ou une combinaison des trois —
+  // indépendamment de qui peut s'y rendre ce tour-ci.
+  const getStationStopTransports = (stationId: number): TransportType[] => {
+    const stops = new Set<TransportType>();
+
+    for (const connection of map.connections) {
+      if (connection.from === stationId || connection.to === stationId) {
+        for (const transport of connection.transports) {
+          stops.add(transport);
+        }
+      }
+    }
+
+    // Ordre fixe (taxi, bus, métro) pour un affichage stable, peu
+    // importe l'ordre des connexions dans les données de la carte.
+    const order: TransportType[] = ["taxi", "bus", "metro"];
+    return order.filter((transport) => stops.has(transport));
+  };
+
   // Un seul transport possible ET rien à décider en plus (pas de ticket
   // noir à envisager) : on part directement, rien à choisir. Sinon, on
   // ouvre (ou referme, si déjà ouvert) le sélecteur au lieu de partir
@@ -284,6 +310,7 @@ function GameMap({
 
         {map.stations.map((station) => {
           const transports = getStationTransports(station.id);
+          const stopTransports = getStationStopTransports(station.id);
 
           const isPossibleDestination = transports.length > 0;
           const hasTransportChoice = transports.length > 1 || (isPossibleDestination && canUseBlackTicket);
@@ -302,6 +329,22 @@ function GameMap({
                 top: `${station.y}%`,
               }}
             >
+              {/* Pastilles d'arrêt : une par transport qui s'arrête
+                  réellement ici (propriété fixe de la carte — voir
+                  getStationStopTransports), toujours visibles, qu'il y
+                  ait ou non un coup possible ce tour-ci. C'est ce qui
+                  permet de voir d'un coup d'œil qu'une station est
+                  "jaune" (taxi seul), "jaune-vert" (taxi + bus),
+                  "jaune-rouge" (taxi + métro) ou les trois à la fois. */}
+              <span className="station-stops" title={`Arrêt : ${stopTransports.join(", ")}`}>
+                {stopTransports.map((transport) => (
+                  <span
+                    key={transport}
+                    className={`station-stop-dot station-stop-dot--${transport}`}
+                  />
+                ))}
+              </span>
+
               <span className="station-number">{station.id}</span>
 
               <span className="station-name">{station.name}</span>

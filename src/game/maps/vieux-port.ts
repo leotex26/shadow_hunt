@@ -61,21 +61,31 @@ export const vieuxPort: GameMap = {
     { from: 6, to: 11, transports: ["taxi"] },
     { from: 9, to: 14, transports: ["taxi"] },
 
-    // =====================
-    // TAXI + BUS
-    // =====================
-    { from: 2, to: 3, transports: ["taxi", "bus"] },
-    { from: 4, to: 5, transports: ["taxi", "bus"] },
-    { from: 7, to: 8, transports: ["taxi", "bus"] },
-    { from: 10, to: 11, transports: ["taxi", "bus"] },
-    { from: 13, to: 14, transports: ["taxi", "bus"] },
-    { from: 17, to: 18, transports: ["taxi", "bus"] },
-    { from: 19, to: 20, transports: ["taxi", "bus"] },
-    { from: 10, to: 15, transports: ["taxi", "bus"] },
+    // Ces liaisons étaient autrefois taxi + bus : le bus doublait le taxi
+    // sur des trajets d'une seule case, sans aucun avantage. Elles sont
+    // désormais en taxi seul — le bus a ses propres liaisons plus bas.
+    { from: 2, to: 3, transports: ["taxi"] },
+    { from: 4, to: 5, transports: ["taxi"] },
+    { from: 7, to: 8, transports: ["taxi"] },
+    { from: 10, to: 11, transports: ["taxi"] },
+    { from: 13, to: 14, transports: ["taxi"] },
+    { from: 17, to: 18, transports: ["taxi"] },
+    { from: 19, to: 20, transports: ["taxi"] },
+    { from: 10, to: 15, transports: ["taxi"] },
+    { from: 9, to: 10, transports: ["taxi"] },
 
-    // 9 et 10 ne sont plus desservis par le métro (voir plus bas), mais
-    // restent un carrefour taxi + bus bien connecté.
-    { from: 9, to: 10, transports: ["taxi", "bus"] },
+    // =====================
+    // BUS SEUL — 9 arrêts : 2, 4, 7, 9, 11, 13, 15, 17, 19
+    // =====================
+    //
+    // Chaque liaison saute par-dessus une station qui n'est pas un arrêt
+    // de bus (3, 8, 10, 14, 18) : deux cases pour un seul ticket, ce que
+    // le taxi ne permet pas. Moins long que le métro, mais mieux que le taxi.
+    { from: 2, to: 4, transports: ["bus"] }, // saute 3
+    { from: 7, to: 9, transports: ["bus"] }, // saute 8
+    { from: 9, to: 11, transports: ["bus"] }, // saute 10
+    { from: 13, to: 15, transports: ["bus"] }, // saute 14
+    { from: 17, to: 19, transports: ["bus"] }, // saute 18
 
     // =====================
     // TAXI + MÉTRO
@@ -86,10 +96,9 @@ export const vieuxPort: GameMap = {
     { from: 14, to: 19, transports: ["taxi", "metro"] },
 
     // =====================
-    // TAXI + BUS + MÉTRO
-    // (correspondance principale)
+    // TAXI + MÉTRO (correspondance principale)
     // =====================
-    { from: 14, to: 15, transports: ["taxi", "bus", "metro"] },
+    { from: 14, to: 15, transports: ["taxi", "metro"] },
 
     // =====================
     // MÉTRO SEUL — lignes longue distance
