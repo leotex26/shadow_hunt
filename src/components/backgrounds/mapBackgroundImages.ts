@@ -1,4 +1,5 @@
 import vieuxPortBackground from "../../assets/maps/vieux-port-background.png";
+import grandBoulevardBackground from "../../assets/maps/grand-boulevard-background.png";
 
 // Fond en image pour une carte donnée. Les cartes absentes de ce
 // registre retombent sur le fond généré en SVG (voir mapBackgrounds.tsx).
@@ -8,4 +9,5 @@ import vieuxPortBackground from "../../assets/maps/vieux-port-background.png";
 // plateau, sans recentrage à faire — voir GameMap.css.
 export const mapBackgroundImages: Record<string, string> = {
   "vieux-port": vieuxPortBackground,
+  "grand-boulevard": grandBoulevardBackground,
 };
