@@ -285,15 +285,19 @@ function App() {
 
   // Fait jouer automatiquement le camp que l'humain ne contrôle pas, en
   // s'appuyant sur l'heuristique de game/engine/ai.ts (fuite pour
-  // Mister X, approche de la dernière position connue pour les
-  // détectives) plutôt que sur un choix uniformément aléatoire.
+  // Mister X ; pour les détectives, estimation des positions possibles de
+  // Mister X d'après la dernière révélation et les transports annoncés
+  // depuis) plutôt que sur un choix uniformément aléatoire.
   useEffect(() => {
     if (screen !== "game" || !config || isHumanTurn || !map || winner) {
       return;
     }
 
     const timer = setTimeout(() => {
-      const choice = chooseAiMove(activePlayer, map, gamePlayers, misterXLastKnownPosition);
+      const choice = chooseAiMove(activePlayer, map, gamePlayers, misterXLastKnownPosition, {
+        misterXMoveHistory,
+        misterXLastRevealTurn,
+      });
 
       const captured = choice
         ? applyMove(activePlayer, choice.stationId, choice.transport, choice.payment)
