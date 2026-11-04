@@ -297,6 +297,7 @@ function App() {
       const choice = chooseAiMove(activePlayer, map, gamePlayers, misterXLastKnownPosition, {
         misterXMoveHistory,
         misterXLastRevealTurn,
+        difficulty: config.difficulty,
       });
 
       const captured = choice
