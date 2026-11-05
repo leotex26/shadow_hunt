@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { PlayerRole } from "../../../game/types/player";
-import type { MapId, GameConfig } from "../../../game/types/flow";
+import type { MapId, GameConfig, Difficulty } from "../../../game/types/flow";
 import type { GameMap } from "../../../game/types/map";
 import { maps } from "../../../game/maps";
 
@@ -36,9 +36,30 @@ const ROLES: { id: PlayerRole; label: string; pitch: string }[] = [
   },
 ];
 
+// Niveau de l'adversaire contrôlé par l'ordinateur (voir
+// game/engine/ai.ts : AI_PROFILES).
+const DIFFICULTIES: { id: Difficulty; label: string; description: string }[] = [
+  {
+    id: "easy",
+    label: "Facile",
+    description: "L'ordinateur hésite et fait des erreurs.",
+  },
+  {
+    id: "normal",
+    label: "Normal",
+    description: "Un adversaire sérieux, mais qui reste battable.",
+  },
+  {
+    id: "hard",
+    label: "Difficile",
+    description: "L'ordinateur joue presque toujours le meilleur coup.",
+  },
+];
+
 function GameSetup({ onConfirm, onBack }: GameSetupProps) {
   const [mapId, setMapId] = useState<MapId>(AVAILABLE_MAPS[0].id);
   const [userRole, setUserRole] = useState<PlayerRole | null>(null);
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
 
   const canStart = userRole !== null;
 
@@ -83,7 +104,6 @@ function GameSetup({ onConfirm, onBack }: GameSetupProps) {
               type="button"
               className={`
                 game-setup__role
-                game-setup__role--${role.id}
                 ${userRole === role.id ? "game-setup__role--selected" : ""}
               `}
               onClick={() => setUserRole(role.id)}
@@ -95,11 +115,32 @@ function GameSetup({ onConfirm, onBack }: GameSetupProps) {
         </div>
       </section>
 
+      <section className="game-setup__section">
+        <h2>Difficulté</h2>
+
+        <div className="game-setup__maps">
+          {DIFFICULTIES.map((level) => (
+            <button
+              key={level.id}
+              type="button"
+              className={`
+                game-setup__map
+                ${difficulty === level.id ? "game-setup__map--selected" : ""}
+              `}
+              onClick={() => setDifficulty(level.id)}
+            >
+              <span className="game-setup__map-name">{level.label}</span>
+              <span className="game-setup__map-desc">{level.description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       <button
         type="button"
         className="game-setup__confirm"
         disabled={!canStart}
-        onClick={() => userRole && onConfirm({ mapId, userRole })}
+        onClick={() => userRole && onConfirm({ mapId, userRole, difficulty })}
       >
         Démarrer
       </button>
