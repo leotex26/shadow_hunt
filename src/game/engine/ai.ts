@@ -1,6 +1,7 @@
 import type { GameMap, TransportType } from "../types/map";
 import type { MisterXMoveRecord } from "../types/history";
 import type { Player } from "../types/player";
+import type { Difficulty } from "../types/flow";
 import { getPossibleMoves } from "./movement";
 import type { TicketPayment } from "./movement";
 import { getNeighbors, getStationDistances } from "./pathfinding";
@@ -25,19 +26,53 @@ export interface AiContext {
   // pour estimer où Mister X peut se trouver.
   misterXLastRevealTurn?: number | null;
 
+  // Niveau de l'IA (le camp que l'humain ne joue pas). "normal" par défaut.
+  difficulty?: Difficulty;
+
   // Source d'aléa, injectable pour des tests reproductibles.
   random?: () => number;
 }
 
 type Option = { stationId: number; transport: TransportType };
 
-// Un coup n'est pas forcément le "meilleur" : l'IA tire au sort parmi les
-// coups quasi équivalents (écart de score <= SCORE_TOLERANCE), dans la
-// limite de MAX_POOL. Jouer toujours le meilleur coup rendrait l'IA
-// parfaitement prévisible dès qu'on a compris le pattern.
-const MAX_POOL = 3;
-const SCORE_TOLERANCE_DETECTIVE = 0.15;
-const SCORE_TOLERANCE_MISTER_X = 2;
+// Réglages de chaque niveau. Dans tous les cas, l'IA tire au sort parmi
+// les coups quasi équivalents (écart de score <= tolerance, dans la limite
+// de maxPool) : jouer toujours le meilleur coup la rendrait parfaitement
+// prévisible dès qu'on a compris le pattern.
+interface AiProfile {
+  // Probabilité de jouer un coup au hasard plutôt que le coup réfléchi
+  // (étourderie).
+  blunderChance: number;
+  maxPool: number;
+  toleranceMisterX: number;
+  toleranceDetective: number;
+  // Multiplie la probabilité de payer en ticket noir (plafonnée à 1).
+  blackMultiplier: number;
+}
+
+export const AI_PROFILES: Record<Difficulty, AiProfile> = {
+  easy: {
+    blunderChance: 0.15,
+    maxPool: 4,
+    toleranceMisterX: 4,
+    toleranceDetective: 0.4,
+    blackMultiplier: 0.5,
+  },
+  normal: {
+    blunderChance: 0,
+    maxPool: 3,
+    toleranceMisterX: 2,
+    toleranceDetective: 0.15,
+    blackMultiplier: 1,
+  },
+  hard: {
+    blunderChance: 0,
+    maxPool: 2,
+    toleranceMisterX: 0.5,
+    toleranceDetective: 0.05,
+    blackMultiplier: 1.3,
+  },
+};
 
 // Distance utilisée quand une station est injoignable (carte non connexe) :
 // très grande, sans valoir Infinity pour garder les sommes calculables.
@@ -120,12 +155,17 @@ export function estimateMisterXPositions(
   return result.size > 0 ? result : new Set([...allStations].filter((id) => !occupied.has(id)));
 }
 
-function pickFromPool<T>(sortedBest: { option: T; score: number }[], tolerance: number, random: () => number): T {
+function pickFromPool<T>(
+  sortedBest: { option: T; score: number }[],
+  tolerance: number,
+  maxPool: number,
+  random: () => number,
+): T {
   const best = sortedBest[0].score;
 
   const pool = sortedBest
     .filter((entry) => Math.abs(entry.score - best) <= tolerance)
-    .slice(0, MAX_POOL);
+    .slice(0, maxPool);
 
   return pool[Math.floor(random() * pool.length)].option;
 }
@@ -134,6 +174,7 @@ function choosePayment(
   player: Player,
   transport: TransportType,
   nearestDetectiveDistance: number,
+  blackMultiplier: number,
   random: () => number,
 ): TicketPayment {
   const canPayNormal = (player.tickets[transport] ?? 0) > 0;
@@ -161,7 +202,7 @@ function choosePayment(
     chance /= 2;
   }
 
-  return random() < chance ? "black" : transport;
+  return random() < Math.min(1, chance * blackMultiplier) ? "black" : transport;
 }
 
 // Choisit le prochain coup du camp non joué par l'humain.
@@ -186,6 +227,7 @@ export function chooseAiMove(
   context: AiContext = {},
 ): AiChoice | null {
   const random = context.random ?? Math.random;
+  const profile = AI_PROFILES[context.difficulty ?? "normal"];
 
   const moves = getPossibleMoves(player, map);
 
@@ -195,6 +237,18 @@ export function chooseAiMove(
 
   if (options.length === 0) {
     return null;
+  }
+
+  // Étourderie : parfois, l'IA joue simplement au hasard.
+  if (random() < profile.blunderChance) {
+    const pick = options[Math.floor(random() * options.length)];
+
+    return {
+      ...pick,
+      payment: player.role === "mister-x"
+        ? choosePayment(player, pick.transport, Infinity, profile.blackMultiplier, random)
+        : pick.transport,
+    };
   }
 
   const distance = createDistanceCache(map);
@@ -232,12 +286,18 @@ export function chooseAiMove(
 
     scored.sort((a, b) => b.score - a.score);
 
-    const chosenEntry = pickFromPool(scored, SCORE_TOLERANCE_MISTER_X, random);
+    const chosenEntry = pickFromPool(scored, profile.toleranceMisterX, profile.maxPool, random);
     const chosen = scored.find((entry) => entry.option === chosenEntry)!;
 
     return {
       ...chosenEntry,
-      payment: choosePayment(player, chosenEntry.transport, chosen.nearest, random),
+      payment: choosePayment(
+        player,
+        chosenEntry.transport,
+        chosen.nearest,
+        profile.blackMultiplier,
+        random,
+      ),
     };
   }
 
@@ -280,7 +340,7 @@ export function chooseAiMove(
 
   scored.sort((a, b) => a.score - b.score);
 
-  const chosen = pickFromPool(scored, SCORE_TOLERANCE_DETECTIVE, random);
+  const chosen = pickFromPool(scored, profile.toleranceDetective, profile.maxPool, random);
 
   return { ...chosen, payment: chosen.transport };
 }
