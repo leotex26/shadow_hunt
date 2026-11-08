@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { chooseAiMove, estimateMisterXPositions } from "./ai";
+import { AI_PROFILES, chooseAiMove, estimateMisterXPositions } from "./ai";
 import { getNeighbors } from "./pathfinding";
 import type { GameMap } from "../types/map";
 import type { Player } from "../types/player";
@@ -279,5 +279,72 @@ describe("chooseAiMove — détectives", () => {
     const withXAt8 = chooseAiMove(d1, corridor, [d1, d2, misterX(8)], 4, context);
 
     expect(withXAt4).toEqual(withXAt8);
+  });
+});
+
+describe("niveaux de difficulté", () => {
+  it("définit un réglage pour chaque niveau, du plus tolérant au plus précis", () => {
+    expect(AI_PROFILES.easy.toleranceMisterX).toBeGreaterThan(AI_PROFILES.normal.toleranceMisterX);
+    expect(AI_PROFILES.normal.toleranceMisterX).toBeGreaterThan(AI_PROFILES.hard.toleranceMisterX);
+    expect(AI_PROFILES.easy.toleranceDetective).toBeGreaterThan(AI_PROFILES.normal.toleranceDetective);
+    expect(AI_PROFILES.normal.toleranceDetective).toBeGreaterThan(AI_PROFILES.hard.toleranceDetective);
+    expect(AI_PROFILES.easy.blunderChance).toBeGreaterThan(AI_PROFILES.normal.blunderChance);
+    expect(AI_PROFILES.normal.blunderChance).toBe(0);
+    expect(AI_PROFILES.hard.blunderChance).toBe(0);
+  });
+
+  it("joue en 'normal' quand aucun niveau n'est précisé", () => {
+    const d1 = detective("d1", 1);
+    const d2 = detective("d2", 7);
+    const x = misterX(4);
+
+    const implicit = chooseAiMove(d1, corridor, [d1, d2, x], 4, { random: first });
+    const explicit = chooseAiMove(d1, corridor, [d1, d2, x], 4, { random: first, difficulty: "normal" });
+
+    expect(implicit).toEqual(explicit);
+  });
+
+  it("'difficile' joue toujours le meilleur coup de fuite pour Mister X", () => {
+    const player = misterX(4);
+    const players = [detective("d1", 3), detective("d2", 5), player];
+
+    for (let i = 0; i < 30; i++) {
+      const choice = chooseAiMove(player, corridor, players, null, { difficulty: "hard" })!;
+
+      expect(choice.stationId).toBe(8);
+    }
+  });
+
+  it("'facile' fait parfois des étourderies que 'difficile' ne fait jamais", () => {
+    const player = misterX(4);
+    const players = [detective("d1", 3), detective("d2", 5), player];
+
+    const stationsPlayed = (difficulty: "easy" | "hard") => {
+      const seen = new Set<number>();
+
+      for (let i = 0; i < 300; i++) {
+        seen.add(chooseAiMove(player, corridor, players, null, { difficulty })!.stationId);
+      }
+
+      return seen;
+    };
+
+    // Avec 3 et 5 occupés, le seul bon coup est 8 : 'difficile' n'en joue
+    // pas d'autre, 'facile' finit par jouer un coup moins bon.
+    expect([...stationsPlayed("hard")]).toEqual([8]);
+    expect(stationsPlayed("easy").size).toBeGreaterThan(1);
+  });
+
+  it("l'étourderie reste un coup légal (jamais un ticket qu'on n'a pas)", () => {
+    const d1 = detective("d1", 2, { taxi: 0, bus: 0, metro: 1 });
+    const d2 = detective("d2", 7);
+    const x = misterX(4);
+
+    for (let i = 0; i < 100; i++) {
+      const choice = chooseAiMove(d1, corridor, [d1, d2, x], 4, { difficulty: "easy" })!;
+
+      expect(choice.transport).toBe("metro");
+      expect(choice.stationId).toBe(6);
+    }
   });
 });
