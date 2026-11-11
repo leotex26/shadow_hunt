@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 
 import StartScreen from "./components/screens/StartScreen/StartScreen";
@@ -6,6 +6,8 @@ import Rules from "./components/screens/Rules/Rules";
 import GameSetup from "./components/screens/GameSetup/GameSetup";
 
 import Header from "./components/Header/Header";
+import Modal from "./components/Modal/Modal";
+import SettingsPanel from "./components/SettingsPanel/SettingsPanel";
 import GameMap from "./components/GameMap/GameMap";
 import Sidebar from "./components/Sidebar/Sidebar";
 import GameFooter from "./components/GameFooter/GameFooter";
@@ -16,16 +18,13 @@ import { getPossibleMoves, movePlayer } from "./game/engine/movement";
 import type { TicketPayment } from "./game/engine/movement";
 import { chooseAiMove } from "./game/engine/ai";
 import { saveGame, loadGame, clearSavedGame } from "./game/persistence";
+import { AI_SPEED_DELAYS, loadAiSpeed, saveAiSpeed } from "./game/settings";
+import type { AiSpeed } from "./game/settings";
 
-import type { AppScreen, GameConfig } from "./game/types/flow";
+import type { AppScreen, Difficulty, GameConfig } from "./game/types/flow";
 import type { Player } from "./game/types/player";
 import type { TransportType } from "./game/types/map";
 import type { MisterXMoveRecord } from "./game/types/history";
-
-// Délai avant de passer automatiquement le tour du camp non joué par
-// l'humain. Purement cosmétique (le temps de voir "à Mister X de jouer")
-// en attendant qu'une vraie IA prenne ce tour en charge.
-const AI_TURN_DELAY_MS = 600;
 
 // Carte utilisée par défaut tant qu'aucune partie n'a encore démarré
 // (juste pour donner un état initial cohérent à `gamePlayers` sur les
@@ -36,6 +35,13 @@ const placeholderMap = Object.values(maps)[0];
 function App() {
   const [screen, setScreen] = useState<AppScreen>("start");
   const [config, setConfig] = useState<GameConfig | null>(null);
+
+  // Fenêtre ouverte par-dessus la partie (règles ou réglages), le cas
+  // échéant. Tant qu'elle est ouverte, l'ordinateur attend.
+  const [openPanel, setOpenPanel] = useState<"rules" | "settings" | null>(null);
+
+  // Vitesse de l'ordinateur : préférence qui reste d'une partie à l'autre.
+  const [aiSpeed, setAiSpeed] = useState<AiSpeed>(loadAiSpeed);
   const [gamePlayers, setGamePlayers] = useState<Player[]>(() =>
     createInitialPlayers(placeholderMap),
   );
@@ -225,6 +231,8 @@ function App() {
   const resetGame = () => {
     clearSavedGame();
 
+    setOpenPanel(null);
+
     setGamePlayers(createInitialPlayers(placeholderMap));
     setActivePlayerIndex(0);
     setTurnNumber(1);
@@ -251,6 +259,19 @@ function App() {
     }
 
     resetGame();
+  };
+
+  const closePanel = useCallback(() => setOpenPanel(null), []);
+
+  const handleAiSpeedChange = (speed: AiSpeed) => {
+    setAiSpeed(speed);
+    saveAiSpeed(speed);
+  };
+
+  // La difficulté fait partie de la partie en cours : elle est sauvegardée
+  // avec elle (voir l'effet de sauvegarde plus bas, qui dépend de `config`).
+  const handleDifficultyChange = (difficulty: Difficulty) => {
+    setConfig((current) => (current ? { ...current, difficulty } : current));
   };
 
   // Reprend la partie enregistrée dans localStorage (si elle existe —
@@ -289,7 +310,7 @@ function App() {
   // Mister X d'après la dernière révélation et les transports annoncés
   // depuis) plutôt que sur un choix uniformément aléatoire.
   useEffect(() => {
-    if (screen !== "game" || !config || isHumanTurn || !map || winner) {
+    if (screen !== "game" || !config || isHumanTurn || !map || winner || openPanel !== null) {
       return;
     }
 
@@ -307,11 +328,11 @@ function App() {
       if (!captured) {
         handleEndTurn();
       }
-    }, AI_TURN_DELAY_MS);
+    }, AI_SPEED_DELAYS[aiSpeed]);
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, config, activePlayerIndex, isHumanTurn, map, winner]);
+  }, [screen, config, activePlayerIndex, isHumanTurn, map, winner, openPanel, aiSpeed]);
 
   // Sauvegarde automatique de la partie en cours, à chaque changement
   // significatif — et nettoyage dès que la partie est terminée (rien à
@@ -410,7 +431,12 @@ function App() {
 
   return (
     <div className="game">
-      <Header mapName={map!.name} onQuit={handleQuitGame} />
+      <Header
+        mapName={map!.name}
+        onShowRules={() => setOpenPanel("rules")}
+        onShowSettings={() => setOpenPanel("settings")}
+        onQuit={handleQuitGame}
+      />
 
       <main className="game-content">
         <GameMap
@@ -440,6 +466,24 @@ function App() {
         mustMove={mustMove}
         onEndTurn={handleManualEndTurn}
       />
+
+      {openPanel === "rules" && (
+        <Modal label="Règles du jeu" onClose={closePanel} wide>
+          <Rules onBack={closePanel} />
+        </Modal>
+      )}
+
+      {openPanel === "settings" && (
+        <Modal label="Réglages" onClose={closePanel}>
+          <SettingsPanel
+            aiSpeed={aiSpeed}
+            onAiSpeedChange={handleAiSpeedChange}
+            difficulty={config!.difficulty ?? "normal"}
+            onDifficultyChange={handleDifficultyChange}
+            onClose={closePanel}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
