@@ -4,6 +4,7 @@ import type { PlayerRole } from "../../../game/types/player";
 import type { MapId, GameConfig, Difficulty } from "../../../game/types/flow";
 import type { GameMap } from "../../../game/types/map";
 import { maps } from "../../../game/maps";
+import { DIFFICULTY_OPTIONS } from "../../../game/difficulty";
 
 import "./GameSetup.css";
 
@@ -33,26 +34,6 @@ const ROLES: { id: PlayerRole; label: string; pitch: string }[] = [
     id: "mister-x",
     label: "🎩 Jouer Mister X",
     pitch: "Semez les détectives et restez caché le plus longtemps possible.",
-  },
-];
-
-// Niveau de l'adversaire contrôlé par l'ordinateur (voir
-// game/engine/ai.ts : AI_PROFILES).
-const DIFFICULTIES: { id: Difficulty; label: string; description: string }[] = [
-  {
-    id: "easy",
-    label: "Facile",
-    description: "L'ordinateur hésite et fait des erreurs.",
-  },
-  {
-    id: "normal",
-    label: "Normal",
-    description: "Un adversaire sérieux, mais qui reste battable.",
-  },
-  {
-    id: "hard",
-    label: "Difficile",
-    description: "L'ordinateur joue presque toujours le meilleur coup.",
   },
 ];
 
@@ -119,7 +100,7 @@ function GameSetup({ onConfirm, onBack }: GameSetupProps) {
         <h2>Difficulté</h2>
 
         <div className="game-setup__maps">
-          {DIFFICULTIES.map((level) => (
+          {DIFFICULTY_OPTIONS.map((level) => (
             <button
               key={level.id}
               type="button"
