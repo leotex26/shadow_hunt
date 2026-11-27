@@ -1,9 +1,9 @@
 import type { PlayerRole } from "./player";
 
-// Deux cartes pour l'instant (voir game/maps/vieux-port.ts et
-// game/maps/grand-boulevard.ts). Quand une troisième arrivera, ce type
-// s'étendra pareil — ou sera dérivé d'un registre de cartes.
-export type MapId = "vieux-port" | "grand-boulevard";
+// Trois cartes pour l'instant (voir game/maps/vieux-port.ts,
+// grand-boulevard.ts et les-canaux.ts). Une quatrième s'ajoutera ici de la
+// même façon — ou ce type sera dérivé du registre de cartes.
+export type MapId = "vieux-port" | "grand-boulevard" | "les-canaux";
 
 // Niveau de l'IA qui joue le camp que l'humain ne contrôle pas (voir
 // game/engine/ai.ts : AI_PROFILES).
